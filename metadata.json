@@ -1,0 +1,8 @@
+{
+  "name": "JobLibre",
+  "description": "La première plateforme de micro-jobs à Libreville. Sécurité financière par séquestre, profils vérifiés et mode urgence pour les besoins immédiats.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ]
+}

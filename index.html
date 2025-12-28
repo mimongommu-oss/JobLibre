@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>JobLibre - Libreville</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              jobgreen: '#2E7D32',
+              jobgreenlight: '#4CAF50',
+              jobgold: '#FFD700',
+              jobbg: '#F8F9FA',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            boxShadow: {
+              'up': '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)',
+              'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+              'glow': '0 0 15px rgba(46, 125, 50, 0.3)',
+              'gold-glow': '0 0 25px rgba(255, 215, 0, 0.4)',
+              'red-glow': '0 0 20px rgba(239, 68, 68, 0.6)',
+            },
+            animation: {
+                shimmer: 'shimmer 2s infinite',
+                'shimmer-fast': 'shimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'glass-shimmer': 'glass-shimmer 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite', 
+                float: 'float 3s ease-in-out infinite',
+                'float-delayed': 'float 3s ease-in-out 1.5s infinite',
+                'pulse-glow': 'pulse-glow 2s infinite',
+                'merge': 'merge 0.6s ease-in-out forwards',
+                'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                'wiggle-violent': 'wiggle 0.5s ease-in-out infinite',
+                'tilt-shaking': 'tilt-shaking 0.3s infinite',
+                'border-pulse': 'border-pulse 2s infinite',
+                'bulb-flash': 'bulb-flash 0.5s ease-in-out infinite',
+            },
+            keyframes: {
+                shimmer: {
+                    '0%': { transform: 'translateX(-150%) skewX(-15deg)' },
+                    '50%': { transform: 'translateX(150%) skewX(-15deg)' },
+                    '100%': { transform: 'translateX(150%) skewX(-15deg)' },
+                },
+                'glass-shimmer': {
+                    '0%': { transform: 'translateX(-150%) skewX(-25deg)' },
+                    '40%': { transform: 'translateX(150%) skewX(-25deg)' }, 
+                    '100%': { transform: 'translateX(150%) skewX(-25deg)' },
+                },
+                float: {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                },
+                'pulse-glow': {
+                    '0%, 100%': { boxShadow: '0 0 0px rgba(255, 215, 0, 0)' },
+                    '50%': { boxShadow: '0 0 20px rgba(255, 215, 0, 0.5)' },
+                },
+                merge: {
+                    '0%': { transform: 'scale(1) translate(0, 0)', opacity: 1 },
+                    '50%': { transform: 'scale(0.5) translate(var(--tx), var(--ty))', opacity: 0.8 },
+                    '100%': { transform: 'scale(0)', opacity: 0 },
+                },
+                pop: {
+                    '0%': { transform: 'scale(0.5)', opacity: 0 },
+                    '100%': { transform: 'scale(1)', opacity: 1 },
+                },
+                wiggle: {
+                    '0%, 100%': { transform: 'rotate(-12deg)' },
+                    '50%': { transform: 'rotate(12deg)' },
+                },
+                'tilt-shaking': {
+                   '0%': { transform: 'translate(0, 0) rotate(0deg)' },
+                   '25%': { transform: 'translate(2px, 2px) rotate(2deg)' },
+                   '50%': { transform: 'translate(0, 0) rotate(0eg)' },
+                   '75%': { transform: 'translate(-2px, 2px) rotate(-2deg)' },
+                   '100%': { transform: 'translate(0, 0) rotate(0deg)' },
+                },
+                'border-pulse': {
+                    '0%, 100%': { borderColor: '#ef4444' },
+                    '50%': { borderColor: '#fca5a5' },
+                },
+                'bulb-flash': {
+                    '0%, 100%': { fill: '#ffffff', color: '#ffffff' },
+                    '50%': { fill: '#FFD700', color: '#FFD700' },
+                }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow-x: hidden; background-color: #f0f2f5; }
+      body { -webkit-tap-highlight-color: transparent; }
+      
+      #root { height: 100%; width: 100%; background-color: #F8F9FA; position: relative; }
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1?dev",
+    "react/": "https://esm.sh/react@18.3.1&dev/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1?dev&deps=react@18.3.1",
+    "react-dom/": "https://esm.sh/react-dom@18.3.1&dev&deps=react@18.3.1/",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?dev&deps=react@18.3.1",
+    "lucide-react": "https://esm.sh/lucide-react@0.263.1?dev&external=react,react-dom&deps=react@18.3.1",
+    "clsx": "https://esm.sh/clsx@2.1.1?dev",
+    "recharts": "https://esm.sh/recharts@2.15.0?dev&external=react,react-dom&deps=react@18.3.1",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@2.3.0?dev",
+    "d3": "https://esm.sh/d3@7.9.0?dev",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
