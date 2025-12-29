@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bell, Search, MapPin, Plus, Info, Briefcase, UserCheck, Heart, ChevronDown } from 'lucide-react';
 import { JobCard } from '../components/JobCard';
@@ -10,6 +9,7 @@ import { StoryViewer } from '../components/StoryViewer';
 import { SmartNotificationDrawer } from '../components/SmartNotificationDrawer';
 import { CoinShopModal } from '../components/CoinShopModal';
 import { QuickStoryModal } from '../components/QuickStoryModal';
+import { LocationSelectorModal } from '../components/LocationSelectorModal';
 import { AppTab, Job } from '../types';
 import { useUser } from '../context/UserContext';
 import { cn, parseLocation } from '../lib/utils';
@@ -21,7 +21,7 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ onChangeTab, onJobSelect }) => {
-    const { user, jobs, stories, notifications, openInfoModal, savedJobIds, categories, getOrCreateConversation, setActiveConversationId } = useUser();
+    const { user, jobs, stories, notifications, openInfoModal, savedJobIds, categories, getOrCreateConversation, setActiveConversationId, markNotificationsRead } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('Tout');
     const [activeType, setActiveType] = useState<'hiring' | 'service_offer'>('hiring'); 
@@ -45,6 +45,7 @@ export const Home: React.FC<HomeProps> = ({ onChangeTab, onJobSelect }) => {
     // Modals State
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showQuickStory, setShowQuickStory] = useState(false);
+    const [showLocationSelector, setShowLocationSelector] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1500);
@@ -140,6 +141,7 @@ export const Home: React.FC<HomeProps> = ({ onChangeTab, onJobSelect }) => {
     const hasMore = filteredJobs.length > visibleCount;
 
     const unreadNotifications = notifications.filter(n => !n.read).length;
+    // const favCount = savedJobIds.length; // Not used in header anymore
 
     // --- SMART NAVIGATION LOGIC ---
     const handleNotificationAction = (actionType: string, target?: string) => {
@@ -213,22 +215,36 @@ export const Home: React.FC<HomeProps> = ({ onChangeTab, onJobSelect }) => {
                         </div>
                     </div>
 
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-1 items-center">
                          {/* Location Pill */}
-                         <div onClick={() => onChangeTab(AppTab.PROFILE)} className="hidden sm:flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 cursor-pointer active:scale-95 transition-transform">
+                         <div onClick={() => setShowLocationSelector(true)} className="hidden sm:flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 cursor-pointer active:scale-95 transition-transform hover:bg-gray-100 hover:border-jobgreen/30 mr-2">
                             <MapPin size={14} className="text-jobgreen" />
                             <span className="text-xs font-bold text-gray-700 max-w-[100px] truncate">
                                 {userLoc.neighborhood ? `${userLoc.neighborhood}, ${userLoc.city}` : userLoc.city || 'Libreville'}
                             </span>
                          </div>
                          
+                         {/* NOTIFICATION BELL (Animated) */}
                          <button 
-                            onClick={() => setIsNotifOpen(true)}
+                            onClick={() => {
+                                setIsNotifOpen(true);
+                                markNotificationsRead(); // Mark read immediately on open
+                            }}
                             className="relative p-2 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
                         >
-                            <Bell size={24} className="text-gray-700" />
+                            <Bell 
+                                size={24} 
+                                className={cn(
+                                    "transition-all",
+                                    unreadNotifications > 0 
+                                        ? "text-jobgreen animate-wiggle-violent" 
+                                        : "text-gray-400"
+                                )} 
+                            />
                             {unreadNotifications > 0 && (
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                                <span className="absolute top-0 right-0 min-w-[16px] h-4 bg-red-600 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white px-0.5 shadow-sm">
+                                    {unreadNotifications}
+                                </span>
                             )}
                         </button>
                     </div>
@@ -253,9 +269,11 @@ export const Home: React.FC<HomeProps> = ({ onChangeTab, onJobSelect }) => {
                 </div>
                 
                 {/* Mobile Location Sub-header */}
-                <div className="flex items-center gap-1 sm:hidden mb-1 px-1 cursor-pointer" onClick={() => onChangeTab(AppTab.PROFILE)}>
+                <div className="flex items-center gap-1 sm:hidden mb-1 px-1 cursor-pointer active:opacity-70" onClick={() => setShowLocationSelector(true)}>
                      <MapPin size={10} className="text-gray-400" />
-                     <span className="text-[10px] font-bold text-gray-400 uppercase">{userLoc.neighborhood ? `${userLoc.neighborhood}, ${userLoc.city}` : userLoc.city || 'Localisation non définie'}</span>
+                     <span className="text-[10px] font-bold text-gray-400 uppercase border-b border-dashed border-gray-300">
+                        {userLoc.neighborhood ? `${userLoc.neighborhood}, ${userLoc.city}` : userLoc.city || 'Localisation non définie'}
+                     </span>
                 </div>
             </div>
 
@@ -529,6 +547,12 @@ export const Home: React.FC<HomeProps> = ({ onChangeTab, onJobSelect }) => {
             <QuickStoryModal 
                 isOpen={showQuickStory}
                 onClose={() => setShowQuickStory(false)}
+            />
+
+            {/* NEW: Location Selector Modal */}
+            <LocationSelectorModal 
+                isOpen={showLocationSelector}
+                onClose={() => setShowLocationSelector(false)}
             />
         </div>
     );

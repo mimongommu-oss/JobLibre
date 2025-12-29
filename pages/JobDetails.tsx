@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ArrowLeft, MapPin, Shield, Share2, Wallet, Zap, ImageIcon, CheckCircle2, Navigation, Camera, ExternalLink, Plus, Minus, Bookmark, Send, Phone, Lock, AlertOctagon, FileText, ChevronLeft, ChevronRight as ChevronRightIcon, EyeOff, TrendingUp, BarChart3, Eye, MousePointer2, Briefcase, Info, MessageCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Shield, Share2, Wallet, Zap, ImageIcon, CheckCircle2, Navigation, Camera, ExternalLink, Plus, Minus, Bookmark, Send, Phone, Lock, AlertOctagon, FileText, ChevronLeft, ChevronRight as ChevronRightIcon, EyeOff, TrendingUp, BarChart3, Eye, MousePointer2, Briefcase, Info, MessageCircle, Heart } from 'lucide-react';
 import { Job, AppTab, ChatMessage } from '../types';
 import { Button } from '../components/ui/Button';
 import { DEFAULT_JOB_PHOTOS, TIER_LIMITS, BOOST_OPTIONS, COIN_VALUE_XAF } from '../constants';
@@ -79,7 +79,6 @@ const CampaignDashboard: React.FC<{ job: Job, onInfo: (t: string, c: string) => 
 }
 
 // ... (BoostSuccessModal, ProofOfWorkModal)
-// Included for completeness in XML but abbreviated here to focus on changes.
 const BoostSuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; boostType: 'basic' | 'urgent'; duration: number }> = ({ isOpen, onClose, boostType, duration }) => {
     if (!isOpen) return null;
     const option = BOOST_OPTIONS.find(o => o.id === boostType);
@@ -94,9 +93,41 @@ const ProofOfWorkModal: React.FC<{ onClose: () => void, onSubmit: () => void }> 
     return (<div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in" onClick={onClose}></div><div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] overflow-hidden relative z-10 animate-in slide-in-from-bottom-10 pb-safe shadow-2xl"><div className="p-6"><div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div><h2 className="text-xl font-black text-gray-900 mb-2">Preuve de Travail</h2><p className="text-gray-500 text-sm font-medium mb-6">Pour débloquer les fonds, validez la fin de mission.</p>{step === 'photo' && (<div className="space-y-4 animate-in fade-in"><div className="aspect-square rounded-3xl bg-gray-50 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100 hover:border-jobgreen hover:text-jobgreen transition-all" onClick={() => setStep('geo')}><Camera size={48} className="mb-2" /><span className="font-bold text-sm">Prendre photo "Après"</span><span className="text-[10px] text-gray-400 mt-1">Camera requise</span></div><Button variant="ghost" onClick={onClose} className="w-full">Annuler</Button></div>)}{step === 'geo' && (<div className="space-y-6 animate-in slide-in-from-right-4"><div className="bg-blue-50 p-6 rounded-2xl flex flex-col items-center gap-4 border border-blue-100 text-center"><div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 animate-pulse"><Navigation size={32} /></div><div><h3 className="font-bold text-blue-900">Géolocalisation</h3><p className="text-xs text-blue-700 mt-1">Nous vérifions que vous êtes sur le lieu d'intervention.</p></div></div><Button onClick={handleGeoLocate} isLoading={isLocating} className="w-full h-14 text-base shadow-lg shadow-blue-500/20 bg-blue-600 hover:bg-blue-700">{isLocating ? 'Acquisition GPS...' : 'Valider ma position'}</Button></div>)}{step === 'confirm' && (<div className="space-y-6 animate-in zoom-in duration-300"><div className="bg-green-50 p-6 rounded-2xl border border-green-100 text-center"><div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4"><CheckCircle2 size={32} /></div><h3 className="font-bold text-green-900 text-lg">Preuves Validées</h3><ul className="text-xs text-green-700 mt-3 space-y-2 text-left bg-white/50 p-3 rounded-xl"><li className="flex items-center gap-2"><CheckCircle2 size={12} /> Photo ajoutée au dossier</li><li className="flex items-center gap-2"><CheckCircle2 size={12} /> Position GPS confirmée (± 5m)</li><li className="flex items-center gap-2"><CheckCircle2 size={12} /> Horodatage certifié</li></ul></div><Button onClick={onSubmit} className="w-full h-14 text-lg shadow-lg shadow-green-500/20 bg-jobgreen hover:bg-green-700">Terminer la Mission</Button></div>)}</div></div></div>);
 };
 
+// --- SIMPLE INPUT COMPONENT (Reverted to standard) ---
+const JobCommentInput = ({ 
+    value, 
+    onChange, 
+    onSubmit 
+}: { 
+    value: string, 
+    onChange: (val: string) => void, 
+    onSubmit: (e: React.FormEvent) => void 
+}) => {
+    return (
+        <form onSubmit={onSubmit} className="flex gap-2 relative z-10">
+            <div className="flex-1 bg-gray-50 rounded-xl flex items-center px-4 py-2 border border-gray-200 focus-within:border-jobgreen focus-within:bg-white transition-colors">
+                <input 
+                    id="comment-input"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="Posez une question..."
+                    className="w-full bg-transparent text-sm font-medium focus:outline-none text-gray-900 placeholder:text-gray-400 selection:bg-jobgreen/20 selection:text-jobgreen"
+                    autoComplete="off"
+                />
+            </div>
+            <button 
+                type="submit"
+                disabled={!value.trim()}
+                className="w-10 h-10 bg-jobgreen text-white rounded-xl flex items-center justify-center shadow-lg shadow-green-900/10 active:scale-95 transition-all disabled:opacity-50 disabled:shadow-none"
+            >
+                <Send size={18} />
+            </button>
+        </form>
+    );
+};
+
 export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack, onNavigate }) => {
-    // REACTIVE JOB FETCHING: Use ID to get latest state from context
-    const { user, jobs, savedJobIds, toggleSavedJob, addNotification, updateJob, openInfoModal, incrementJobView, applyToJob, addJobComment, getOrCreateConversation, addMessageToConversation, setActiveConversationId } = useUser();
+    const { user, jobs, savedJobIds, toggleSavedJob, addNotification, updateJob, openInfoModal, incrementJobView, applyToJob, addJobComment, getOrCreateConversation, addMessageToConversation, setActiveConversationId, toggleJobLike, toggleJobCommentLike } = useUser();
     const job = jobs.find(j => j.id === initialJob.id) || initialJob;
 
     const [activeTab, setActiveTab] = useState<'photos' | 'map'>('photos');
@@ -135,7 +166,6 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
     const [showArrows, setShowArrows] = useState(false);
     const carouselRef = useRef<HTMLDivElement>(null);
 
-    // ... (Scroll logic and arrows remain same) ...
     useEffect(() => {
         const KEY = 'joblibre_arrows_seen_at';
         const lastSeen = localStorage.getItem(KEY);
@@ -152,11 +182,13 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
     const [loading, setLoading] = useState(false);
     
     // --- UPDATED APPLICATION LOGIC ---
-    // Check if user has already applied via tracked IDs
     const hasApplied = user.appliedJobIds?.includes(job.id) || false;
     
     const isHiring = job.type === 'hiring';
     const isSaved = savedJobIds.includes(job.id);
+    const isLiked = job.likedByMe;
+    const likeCount = job.likes || 0;
+
     const isAssignedToMe = job.assignedTo?.id === user.id || (job.status === 'taken' && hasApplied); // Simplification for demo
     const userLimits = TIER_LIMITS[user.tier];
     const appLimit = userLimits.maxApplications;
@@ -164,20 +196,19 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
     const isQuotaExceeded = appsUsed >= appLimit;
     const canNegotiate = userLimits.canNegotiate;
     
-    // VISIBILITY LOGIC FIX: Owner always sees budget
     const isBudgetMasked = !isOwner && job.budget > userLimits.maxBudgetView;
 
+    // --- DETERMINE FOOTER STATUS (Applicant Action vs Comment Bar) ---
+    const showActionFooter = !isOwner && !isAssignedToMe;
+
     const handleToggleSave = () => { toggleSavedJob(job.id); addNotification(isSaved ? 'Retiré' : 'Sauvegardé', `L'annonce a été ${isSaved ? 'retirée de' : 'ajoutée à'} vos favoris.`, 'success'); }
+    const handleToggleLike = () => { toggleJobLike(job.id); };
     const handleShare = async () => { if (navigator.share) { try { await navigator.share({ title: `JobLibre: ${job.title}`, text: `Regarde cette mission sur JobLibre : ${job.title}`, url: window.location.href }); } catch (error) { console.log('Error sharing', error); } } else { alert("Lien copié dans le presse-papier !"); } };
     const handleOpenMap = () => { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location)}`, '_blank'); };
     
     const handleOfferSubmit = () => { 
         setLoading(true); 
-        
-        // 1. Create/Get Conversation
         const conversationId = getOrCreateConversation(job.postedBy, job);
-
-        // 2. Send Negotiation Message
         const msg: ChatMessage = {
             id: Date.now().toString(),
             senderId: user.id,
@@ -187,8 +218,6 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
             metadata: { amount: offer, status: 'pending', jobId: job.id }
         };
         addMessageToConversation(conversationId, msg);
-
-        // 3. Set Active Conversation & Redirect
         setTimeout(() => { 
             setLoading(false); 
             setShowNegotiate(false); 
@@ -199,14 +228,12 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
         }, 1000); 
     };
     
-    // --- NEW APPLY HANDLER ---
     const handleApply = () => { 
         if (isQuotaExceeded) { setShowUpgradeModal(true); return; } 
         setLoading(true); 
         setTimeout(() => { 
             applyToJob(job);
             setLoading(false); 
-            // Trigger Navigation
             if (onNavigate) {
                 onNavigate(AppTab.MESSAGES);
             }
@@ -233,21 +260,28 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-safe relative">
+        <div className={cn("min-h-screen bg-gray-50 relative", showActionFooter ? "pb-32" : "pb-24")}>
             {/* Header */}
             <div className="sticky top-0 bg-white/90 backdrop-blur-md z-50 px-4 py-3 flex justify-between items-center border-b border-gray-200 transition-all">
                 <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full active:scale-95 transition-transform"><ArrowLeft size={22} className="text-gray-900" /></button>
                 <div className="flex flex-col items-center"><span className="font-bold text-xs text-gray-500 uppercase tracking-widest">Mission</span><span className="font-black text-sm text-gray-900 truncate max-w-[150px]">{job.title}</span></div>
-                <div className="flex gap-2 -mr-2"><button onClick={handleToggleSave} className="p-2 hover:bg-gray-100 rounded-full active:scale-95 transition-transform"><Bookmark size={22} className={cn("text-gray-900 transition-all", isSaved ? "fill-jobgold text-jobgold" : "")} /></button><button onClick={handleShare} className="p-2 hover:bg-gray-100 rounded-full active:scale-95 transition-transform"><Share2 size={22} className="text-gray-900" /></button></div>
+                <div className="flex gap-1 -mr-2">
+                    {/* Header Actions */}
+                    <button onClick={handleToggleSave} className="p-2 hover:bg-gray-100 rounded-full active:scale-95 transition-transform"><Bookmark size={22} className={cn("text-gray-900 transition-all", isSaved ? "fill-jobgold text-jobgold" : "")} /></button>
+                    <button onClick={handleShare} className="p-2 hover:bg-gray-100 rounded-full active:scale-95 transition-transform"><Share2 size={22} className="text-gray-900" /></button>
+                </div>
             </div>
 
-            <div className="pb-32">
+            <div>
                 <div className="bg-white border-b border-gray-200 pb-6">
+                    {/* ... Image Carousel Code ... */}
                     <div className="h-64 w-full relative bg-gray-100 overflow-hidden group">
+                        {/* ... (Kept existing image logic) ... */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10"></div>
                         {activeTab === 'photos' ? (<><div ref={carouselRef} onScroll={handleScroll} className="w-full h-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth">{displayPhotos.map((photo, i) => (<div key={i} className="w-full h-full flex-shrink-0 snap-center"><img src={photo} className="w-full h-full object-cover" alt={`Job ${i+1}`} /></div>))}</div>{displayPhotos.length > 1 && (<><button onClick={(e) => { e.stopPropagation(); prevImage(); }} className={cn("absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm z-20 transition-all duration-500", showArrows ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10 pointer-events-none")}><ChevronLeft size={24} /></button><button onClick={(e) => { e.stopPropagation(); nextImage(); }} className={cn("absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm z-20 transition-all duration-500", showArrows ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10 pointer-events-none")}><ChevronRightIcon size={24} /></button></>)}<div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">{displayPhotos.map((_, i) => (<div key={i} className={cn("h-1.5 rounded-full transition-all duration-300 shadow-sm", i === currentImageIndex ? "w-6 bg-white" : "w-1.5 bg-white/50")} />))}</div></>) : (<div onClick={handleOpenMap} className="w-full h-full relative cursor-pointer"><img src={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/9.45,0.41,13,0/600x400?access_token=pk.mock`} className="w-full h-full object-cover" alt="Map" /><div className="absolute inset-0 bg-black/10 flex items-center justify-center"><button className="bg-white text-gray-900 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 text-xs hover:scale-105 transition-transform"><ExternalLink size={14}/> Ouvrir GPS</button></div></div>)}
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur p-1 rounded-xl shadow-lg flex gap-1 border border-white/50 z-20"><button onClick={() => setActiveTab('photos')} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2", activeTab === 'photos' ? "bg-gray-900 text-white shadow-sm" : "text-gray-500 hover:bg-gray-100")}><ImageIcon size={14} /> Photos</button><button onClick={() => setActiveTab('map')} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2", activeTab === 'map' ? "bg-gray-900 text-white shadow-sm" : "text-gray-500 hover:bg-gray-100")}><MapPin size={14} /> Carte</button></div>
                     </div>
+
                     <div className="px-5 pt-6">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex gap-2 items-center flex-wrap">
@@ -269,11 +303,27 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
                             </div>
                         </div>
                         <h1 className="text-2xl font-black text-gray-900 leading-tight mb-2">{job.title}</h1>
-                        <div className="text-sm text-gray-500 font-medium flex items-center gap-2"><MapPin size={14} /> {job.location}</div>
+                        
+                        {/* LOCATION & HEART ROW */}
+                        <div className="flex items-center justify-between mt-1">
+                            <div className="text-sm text-gray-500 font-medium flex items-center gap-2">
+                                <MapPin size={14} className="text-gray-400" /> {job.location}
+                            </div>
+                            
+                            {/* HEART MOVED HERE */}
+                            <button 
+                                onClick={handleToggleLike}
+                                className="flex items-center gap-1.5 group active:scale-95 transition-transform p-1 -mr-1"
+                            >
+                                {likeCount > 0 && <span className={cn("text-xs font-bold", isLiked ? "text-red-500" : "text-gray-400")}>{likeCount}</span>}
+                                <Heart size={24} className={cn("transition-all", isLiked ? "fill-red-500 text-red-500 animate-wiggle-violent" : "text-gray-300 group-hover:text-gray-400")} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <div className="px-4 mt-6 space-y-6">
+                    {/* ... (Campaign Dashboard, Quota, Budget Blocks kept same) ... */}
                     {isOwner && job.isBoosted && (
                         <div className="animate-in slide-in-from-bottom-4">
                             <CampaignDashboard job={job} onInfo={openInfoModal} />
@@ -319,26 +369,57 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100"><SectionTitle label="Description de la mission" info="Détails fournis par le client." onInfo={openInfoModal} /><div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0 text-gray-400 mt-1"><FileText size={16} /></div><p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">{job.description || "Aucune description détaillée fournie."}</p></div></div>
                     
-                    {/* COMMENT SECTION IN DETAILS */}
+                    {/* DESCRIPTION (Restored to simple) */}
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        <SectionTitle label="Description de la mission" info="Détails fournis par le client." onInfo={openInfoModal} />
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0 text-gray-400 mt-1">
+                                <FileText size={16} />
+                            </div>
+                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                                {job.description || "Aucune description détaillée fournie."}
+                            </p>
+                        </div>
+                        <div className="text-[10px] font-medium text-gray-400 mt-4 text-right border-t border-gray-50 pt-2">
+                            Publié le {new Date(job.createdAt).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}
+                        </div>
+                    </div>
+                    
+                    {/* COMMENT SECTION IN DETAILS - FULLY ADAPTIVE */}
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
                         <SectionTitle label={`Commentaires (${job.comments?.length || 0})`} info="Questions publiques sur cette mission." onInfo={openInfoModal} />
                         
                         <div className="space-y-4 mb-4">
                             {job.comments && job.comments.length > 0 ? (
                                 job.comments.map((comment) => {
                                     const isMe = comment.userId === user.id;
+                                    const isLiked = comment.likedByMe;
+                                    const likes = comment.likes || 0;
+
                                     return (
-                                        <div key={comment.id} className={cn("flex gap-3", isMe ? "flex-row-reverse" : "")}>
+                                        <div key={comment.id} className={cn("flex gap-3 relative group", isMe ? "flex-row-reverse" : "")}>
                                             <img src={comment.userAvatar} className="w-8 h-8 rounded-full object-cover border border-gray-200 mt-1" />
-                                            <div className={cn("max-w-[85%] rounded-xl p-3 text-sm", isMe ? "bg-blue-50 text-gray-900 rounded-tr-none" : "bg-gray-50 text-gray-900 rounded-tl-none")}>
+                                            <div className={cn("max-w-[85%] rounded-xl p-3 text-sm relative pb-5", isMe ? "bg-blue-50 text-gray-900 rounded-tr-none" : "bg-gray-50 text-gray-900 rounded-tl-none")}>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="font-bold text-xs text-gray-900">{isMe ? "Moi" : comment.userName}</span>
                                                     {comment.isOwner && <span className="bg-jobgreen text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5 font-bold"><Shield size={8} /> Auteur</span>}
                                                     <span className="text-[9px] text-gray-400">{comment.timestamp}</span>
                                                 </div>
                                                 <p className="text-gray-700">{comment.text}</p>
+
+                                                {/* Like Button (Cleaned) */}
+                                                <button 
+                                                    onClick={() => toggleJobCommentLike(job.id, comment.id)}
+                                                    className={cn(
+                                                        "absolute -bottom-2 flex items-center gap-1 px-1.5 py-0.5 transition-all active:scale-90",
+                                                        isMe ? "left-0" : "right-0",
+                                                        isLiked ? "text-red-500" : "text-gray-400 hover:text-red-400"
+                                                    )}
+                                                >
+                                                    <Heart size={10} className={cn(isLiked ? "fill-current animate-wiggle-violent" : "")} />
+                                                    {likes > 0 && <span className="text-[9px] font-bold">{likes}</span>}
+                                                </button>
                                             </div>
                                         </div>
                                     )
@@ -348,38 +429,37 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
                             )}
                         </div>
 
-                        <form onSubmit={handleSendComment} className="flex gap-2">
-                            <div className="flex-1 bg-gray-50 rounded-xl flex items-center px-4 py-2 border border-gray-200 focus-within:border-jobgreen focus-within:bg-white transition-colors">
-                                <input 
-                                    value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                    placeholder="Posez une question..."
-                                    className="w-full bg-transparent text-sm font-medium focus:outline-none text-gray-900"
+                        {/* RENDER INPUT HERE ONLY IF WE ARE A VISITOR (Footer exists) */}
+                        {showActionFooter && (
+                            <div className="pt-2 border-t border-gray-50">
+                                <JobCommentInput 
+                                    value={commentText} 
+                                    onChange={setCommentText} 
+                                    onSubmit={handleSendComment} 
                                 />
                             </div>
-                            <button 
-                                type="submit"
-                                disabled={!commentText.trim()}
-                                className="w-10 h-10 bg-jobgreen text-white rounded-xl flex items-center justify-center shadow-lg shadow-green-900/10 active:scale-95 transition-all disabled:opacity-50 disabled:shadow-none"
-                            >
-                                <Send size={18} />
-                            </button>
-                        </form>
+                        )}
                     </div>
 
                     <div className="h-6"></div>
                 </div>
             </div>
 
-            {/* --- ACTION FOOTER --- */}
-            
-            {isAssignedToMe && job.status === 'taken' && (
-                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-safe z-40 shadow-up">
-                    <Button onClick={() => setShowProofModal(true)} className="w-full h-14 rounded-xl font-black text-lg bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20"><Camera size={20} className="mr-2" /> Valider Fin de Mission</Button>
+            {/* STICKY INPUT BAR FOR OWNER (No Footer) - FIXED BOTTOM */}
+            {!showActionFooter && (
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 pb-safe z-50 shadow-up">
+                    <div className="max-w-lg mx-auto">
+                        <JobCommentInput 
+                            value={commentText} 
+                            onChange={setCommentText} 
+                            onSubmit={handleSendComment} 
+                        />
+                    </div>
                 </div>
             )}
-            
-            {!isOwner && !isAssignedToMe && (
+
+            {/* ... Rest of Footer/Modals ... */}
+            {showActionFooter && (
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-safe z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                     <div className="flex gap-3 max-w-lg mx-auto">
                         <Button 
@@ -403,24 +483,12 @@ export const JobDetails: React.FC<JobDetailsProps> = ({ job: initialJob, onBack,
                 </div>
             )}
             
-            {isOwner && !job.isBoosted && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-safe z-40">
-                     <div className="max-w-lg mx-auto">
-                        <Button 
-                            onClick={() => setShowBoostModal(true)}
-                            className="w-full h-14 rounded-xl font-black bg-orange-500 hover:bg-orange-600 text-white border-b-4 border-orange-700 active:border-b-0 active:translate-y-1"
-                        >
-                            <Zap size={18} className="mr-2 fill-white" /> Booster l'annonce
-                        </Button>
-                     </div>
-                </div>
-            )}
-
-            {/* --- MODALS --- */}
+            {/* ... Modals included ... */}
             {showNegotiate && canNegotiate && (
                 <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto animate-in fade-in" onClick={() => setShowNegotiate(false)}/>
                     <div className="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 pointer-events-auto shadow-2xl animate-in slide-in-from-bottom-10 border-t-2 border-gray-200 relative pb-safe">
+                         {/* ... Drawer Content ... */}
                          <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
                          <div className="flex justify-between items-center mb-6"><div><h2 className="text-2xl font-black text-gray-900">Faire une offre</h2><p className="text-sm text-gray-500 font-medium">Proposez votre tarif pour cette mission.</p></div><div className="w-12 h-12 rounded-full bg-jobgold/10 flex items-center justify-center border border-jobgold/20"><Wallet className="text-jobgold" size={24} /></div></div>
                          <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-200 mb-6 flex items-center justify-between"><div className="text-sm font-bold text-gray-500">Budget client</div><div className="text-xl font-black text-gray-900">{job.budget > 0 ? job.budget.toLocaleString() : 'Sur devis'} <span className="text-sm text-gray-400">FCFA</span></div></div>

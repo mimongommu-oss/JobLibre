@@ -1,11 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Conversation } from '../types';
+import { Conversation, Job } from '../types';
 import { ChatList } from '../components/messages/ChatList';
 import { ChatDetail } from '../components/messages/ChatDetail';
 import { useUser } from '../context/UserContext';
 
-export const Messages: React.FC = () => {
+interface MessagesProps {
+    onJobSelect?: (job: Job) => void;
+}
+
+export const Messages: React.FC<MessagesProps> = ({ onJobSelect }) => {
     const { conversations, activeConversationId, setActiveConversationId } = useUser();
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
@@ -26,6 +30,7 @@ export const Messages: React.FC = () => {
             <ChatDetail 
                 conversation={selectedConversation} 
                 onBack={() => setSelectedConversation(null)} 
+                onJobSelect={onJobSelect}
             />
         );
     }

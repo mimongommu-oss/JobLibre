@@ -8,6 +8,7 @@ interface ChatContextType {
     addMessageToConversation: (conversationId: string, message: ChatMessage) => void;
     updateMessageInConversation: (conversationId: string, messageId: string, updates: Partial<ChatMessage>) => void;
     markConversationAsRead: (conversationId: string) => void;
+    toggleMessageLike: (conversationId: string, messageId: string) => void; // NEW
     
     // New methods for "Apply & Redirect"
     getOrCreateConversation: (withUser: User, relatedJob?: Job) => string; 
@@ -43,6 +44,28 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     messages: conv.messages.map(msg => 
                         msg.id === messageId ? { ...msg, ...updates, metadata: { ...msg.metadata, ...updates.metadata } } : msg
                     )
+                };
+            }
+            return conv;
+        }));
+    };
+
+    const toggleMessageLike = (conversationId: string, messageId: string) => {
+        setConversations(prev => prev.map(conv => {
+            if (conv.id === conversationId) {
+                return {
+                    ...conv,
+                    messages: conv.messages.map(msg => {
+                        if (msg.id === messageId) {
+                            const isLiked = msg.likedByMe;
+                            return {
+                                ...msg,
+                                likedByMe: !isLiked,
+                                likes: (msg.likes || 0) + (isLiked ? -1 : 1)
+                            };
+                        }
+                        return msg;
+                    })
                 };
             }
             return conv;
@@ -87,6 +110,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             addMessageToConversation,
             updateMessageInConversation,
             markConversationAsRead,
+            toggleMessageLike,
             getOrCreateConversation,
             activeConversationId,
             setActiveConversationId

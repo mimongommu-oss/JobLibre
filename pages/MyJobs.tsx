@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Briefcase, FileText, ChevronRight, MapPin, Eye, Clock, CheckCircle2, XCircle, Search, Info } from 'lucide-react';
 import { useUser } from '../context/UserContext';
@@ -84,7 +83,7 @@ export const MyJobs: React.FC<{ onNavigate: (tab: AppTab) => void, onJobSelect: 
                                 </div>
                                 <div className="flex items-center gap-4 text-xs text-gray-500 font-medium border-t border-gray-50 pt-3">
                                     <div className="flex items-center gap-1">
-                                        <MapPin size={12} /> {job.location.split(',')[0]}
+                                        <MapPin size={12} /> {job.location}
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <Clock size={12} /> Postulé récemment

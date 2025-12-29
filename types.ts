@@ -40,6 +40,9 @@ export interface JobComment {
     text: string;
     timestamp: string;
     isOwner?: boolean;
+    // Likes
+    likes?: number;
+    likedByMe?: boolean;
 }
 
 export interface Job {
@@ -63,6 +66,10 @@ export interface Job {
   images?: string[]; // Ajout des images
   views?: number; // NOUVEAU: Compteur de vues
   
+  // Likes
+  likes?: number;
+  likedByMe?: boolean;
+  
   // New visibility rules
   minTierRequired?: UserTier; // Le tier minimum pour voir/postuler
   
@@ -85,7 +92,11 @@ export interface ChatMessage {
       status?: 'pending' | 'accepted' | 'rejected' | 'completed' | 'countered';
       counterOffer?: number;
       jobId?: string; // Link message to a job
+      url?: string;
   };
+  // Reactions
+  likes?: number;
+  likedByMe?: boolean;
 }
 
 export interface Conversation {
@@ -120,7 +131,7 @@ export interface Transaction {
 
 export enum AppTab {
   HOME = 'home',
-  MY_JOBS = 'my_jobs', // Replaced HALL_OF_FAME
+  MY_JOBS = 'my_jobs', // Replaced HALL_OF_AME
   CREATE = 'create',
   MESSAGES = 'messages',
   PROFILE = 'profile',

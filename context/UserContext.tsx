@@ -62,6 +62,11 @@ interface UserContextType {
     // Category Actions
     addNewCategory: (name: string) => void;
 
+    // Likes
+    toggleJobLike: (jobId: string) => void;
+    toggleJobCommentLike: (jobId: string, commentId: string) => void;
+    toggleMessageLike: (conversationId: string, messageId: string) => void;
+
     // Chat Actions
     addMessageToConversation: (conversationId: string, message: ChatMessage) => void;
     updateMessageInConversation: (conversationId: string, messageId: string, updates: Partial<ChatMessage>) => void;

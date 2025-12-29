@@ -40,6 +40,10 @@ interface MarketplaceContextType {
     activeCommentJobId: string | null;
     setActiveCommentJobId: (id: string | null) => void;
     addJobComment: (jobId: string, text: string) => void;
+
+    // Likes
+    toggleJobLike: (jobId: string) => void;
+    toggleJobCommentLike: (jobId: string, commentId: string) => void;
 }
 
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
@@ -246,11 +250,50 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
                     userAvatar: user.avatar,
                     text: text,
                     timestamp: 'À l\'instant',
-                    isOwner: job.postedBy.id === user.id
+                    isOwner: job.postedBy.id === user.id,
+                    likes: 0,
+                    likedByMe: false
                 };
                 return { ...job, comments: [...(job.comments || []), newComment] };
             }
             return job;
+        }));
+    };
+
+    // --- LIKE LOGIC ---
+    const toggleJobLike = (jobId: string) => {
+        setJobs(prev => prev.map(j => {
+            if (j.id === jobId) {
+                const isLiked = j.likedByMe;
+                return {
+                    ...j,
+                    likedByMe: !isLiked,
+                    likes: (j.likes || 0) + (isLiked ? -1 : 1)
+                };
+            }
+            return j;
+        }));
+    };
+
+    const toggleJobCommentLike = (jobId: string, commentId: string) => {
+        setJobs(prev => prev.map(j => {
+            if (j.id === jobId && j.comments) {
+                return {
+                    ...j,
+                    comments: j.comments.map(c => {
+                        if (c.id === commentId) {
+                            const isLiked = c.likedByMe;
+                            return {
+                                ...c,
+                                likedByMe: !isLiked,
+                                likes: (c.likes || 0) + (isLiked ? -1 : 1)
+                            };
+                        }
+                        return c;
+                    })
+                };
+            }
+            return j;
         }));
     };
 
@@ -259,7 +302,8 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
             jobs, stories, categories, savedJobIds,
             addJob, updateJob, incrementJobView, incrementStoryView,
             toggleSavedJob, addNewCategory, addUrgentStory, addInfoStory, applyToJob,
-            activeCommentJobId, setActiveCommentJobId, addJobComment
+            activeCommentJobId, setActiveCommentJobId, addJobComment,
+            toggleJobLike, toggleJobCommentLike
         }}>
             {children}
         </MarketplaceContext.Provider>

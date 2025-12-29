@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Star, ThumbsUp, User, MessageSquare, CheckCircle2, Shield } from 'lucide-react';
+import { X, Star, ThumbsUp, User, MessageSquare, CheckCircle2, Shield, Heart } from 'lucide-react';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { MOCK_REVIEWS } from '../constants';
@@ -19,6 +19,12 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
     const [comment, setComment] = useState('');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Local State for Reviews to handle Likes (since we use MOCK data)
+    // In a real app, this would come from an API/Context
+    const [reviews, setReviews] = useState(() => 
+        MOCK_REVIEWS.map(r => ({ ...r, likes: 0, likedByMe: false }))
+    );
 
     // Mock Data for Breakdown
     const breakdown = [
@@ -33,6 +39,20 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
 
     const toggleTag = (tag: string) => {
         setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+    };
+
+    const toggleLike = (id: string) => {
+        setReviews(prev => prev.map(r => {
+            if (r.id === id) {
+                const isLiked = r.likedByMe;
+                return { 
+                    ...r, 
+                    likedByMe: !isLiked, 
+                    likes: (r.likes || 0) + (isLiked ? -1 : 1) 
+                };
+            }
+            return r;
+        }));
     };
 
     const handleSubmit = () => {
@@ -104,8 +124,8 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
                                     </Button>
                                 </div>
 
-                                {MOCK_REVIEWS.map((review) => (
-                                    <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                                {reviews.map((review) => (
+                                    <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative">
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-3">
                                                 <img src={review.avatar} className="w-10 h-10 rounded-full object-cover bg-gray-200" alt={review.name} />
@@ -122,7 +142,7 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
                                             {review.comment}
                                         </p>
                                         {review.tags && (
-                                            <div className="flex flex-wrap gap-1.5">
+                                            <div className="flex flex-wrap gap-1.5 mb-3">
                                                 {review.tags.map(tag => (
                                                     <span key={tag} className="px-2 py-0.5 bg-gray-50 text-gray-500 rounded-md text-[10px] font-bold border border-gray-100">
                                                         {tag}
@@ -138,6 +158,20 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
                                                 <p className="text-xs text-blue-900/80 italic">"{review.response}"</p>
                                             </div>
                                         )}
+
+                                        {/* Like Button on Review */}
+                                        <div className="flex justify-end mt-2">
+                                            <button 
+                                                onClick={() => toggleLike(review.id)}
+                                                className={cn(
+                                                    "flex items-center gap-1 px-2 py-1 rounded-full border shadow-sm transition-all active:scale-95",
+                                                    review.likedByMe ? "border-red-100 bg-red-50 text-red-500" : "border-gray-100 bg-white text-gray-400 hover:text-red-400"
+                                                )}
+                                            >
+                                                <Heart size={12} className={cn(review.likedByMe ? "fill-current animate-wiggle-violent" : "")} />
+                                                {(review.likes || 0) > 0 && <span className="text-[10px] font-bold">{review.likes}</span>}
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

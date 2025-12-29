@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, MessageCircle, Shield } from 'lucide-react';
+import { X, Send, MessageCircle, Shield, Heart } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Job } from '../types';
 import { cn } from '../lib/utils';
@@ -12,7 +12,7 @@ interface JobCommentsModalProps {
 }
 
 export const JobCommentsModal: React.FC<JobCommentsModalProps> = ({ isOpen, onClose, jobId }) => {
-    const { jobs, addJobComment, user } = useUser();
+    const { jobs, addJobComment, user, toggleJobCommentLike } = useUser();
     const [commentText, setCommentText] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +35,10 @@ export const JobCommentsModal: React.FC<JobCommentsModalProps> = ({ isOpen, onCl
         
         addJobComment(job.id, commentText);
         setCommentText('');
+    };
+
+    const handleLike = (commentId: string) => {
+        toggleJobCommentLike(job.id, commentId);
     };
 
     return (
@@ -68,15 +72,18 @@ export const JobCommentsModal: React.FC<JobCommentsModalProps> = ({ isOpen, onCl
                     ) : (
                         comments.map((comment) => {
                             const isMe = comment.userId === user.id;
+                            const isLiked = comment.likedByMe;
+                            const likes = comment.likes || 0;
+
                             return (
-                                <div key={comment.id} className={cn("flex gap-3", isMe ? "flex-row-reverse" : "")}>
+                                <div key={comment.id} className={cn("flex gap-3 relative group", isMe ? "flex-row-reverse" : "")}>
                                     <img 
                                         src={comment.userAvatar} 
                                         alt={comment.userName} 
                                         className="w-8 h-8 rounded-full object-cover border border-gray-200 mt-1"
                                     />
                                     <div className={cn(
-                                        "max-w-[80%] rounded-2xl p-3 text-sm",
+                                        "max-w-[80%] rounded-2xl p-3 text-sm relative pb-5", // Extra padding bottom for like
                                         isMe ? "bg-blue-50 text-gray-900 rounded-tr-none" : "bg-white border border-gray-100 text-gray-900 rounded-tl-none shadow-sm"
                                     )}>
                                         <div className="flex items-center gap-2 mb-1">
@@ -89,6 +96,19 @@ export const JobCommentsModal: React.FC<JobCommentsModalProps> = ({ isOpen, onCl
                                             <span className="text-[10px] text-gray-400">{comment.timestamp}</span>
                                         </div>
                                         <p className="leading-snug">{comment.text}</p>
+
+                                        {/* Like Button on Comment (Cleaned) */}
+                                        <button 
+                                            onClick={() => handleLike(comment.id)}
+                                            className={cn(
+                                                "absolute -bottom-2 flex items-center gap-1 px-1.5 py-0.5 transition-all active:scale-90",
+                                                isMe ? "left-0" : "right-0",
+                                                isLiked ? "text-red-500" : "text-gray-400 hover:text-red-400"
+                                            )}
+                                        >
+                                            <Heart size={10} className={cn(isLiked ? "fill-current animate-wiggle-violent" : "")} />
+                                            {likes > 0 && <span className="text-[9px] font-bold">{likes}</span>}
+                                        </button>
                                     </div>
                                 </div>
                             );

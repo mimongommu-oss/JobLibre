@@ -18,13 +18,15 @@ import { JobCommentsModal } from './components/JobCommentsModal';
 const Home = lazy(() => import('./pages/Home').then(module => ({ default: module.Home })));
 const CreateJob = lazy(() => import('./pages/CreateJob').then(module => ({ default: module.CreateJob })));
 const Profile = lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
-const MyJobs = lazy(() => import('./pages/MyJobs').then(module => ({ default: module.MyJobs }))); // NEW
+const MyJobs = lazy(() => import('./pages/MyJobs').then(module => ({ default: module.MyJobs }))); 
 const Messages = lazy(() => import('./pages/Messages').then(module => ({ default: module.Messages })));
 const JobDetails = lazy(() => import('./pages/JobDetails').then(module => ({ default: module.JobDetails })));
 
 const AppContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.HOME);
+  // Track the previous tab to handle "Back" correctly
+  const [lastTab, setLastTab] = useState<AppTab>(AppTab.HOME);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   
   const { infoModal, closeInfoModal, activeCommentJobId, setActiveCommentJobId } = useUser();
@@ -33,11 +35,27 @@ const AppContent: React.FC = () => {
   // Watch for active conversation changes to switch tabs
   useEffect(() => {
     if (activeConversationId) {
-        setActiveTab(AppTab.MESSAGES);
+        handleTabChange(AppTab.MESSAGES);
         // Important: Close any open job details if we are redirecting to chat
         setSelectedJob(null);
     }
   }, [activeConversationId]);
+
+  const handleTabChange = (newTab: AppTab) => {
+      // If we are going to a "modal-like" tab (like Create), save where we came from.
+      // If we are just switching main tabs, update history normally.
+      if (newTab === AppTab.CREATE) {
+          setLastTab(activeTab); 
+      } else {
+          // Optional: You could implement a full stack history here if needed
+          // For now, standard navigation just updates active
+      }
+      setActiveTab(newTab);
+  };
+
+  const handleBackFromCreate = () => {
+      setActiveTab(lastTab);
+  };
 
   if (loading) {
       return <SplashScreen onFinish={() => setLoading(false)} />;
@@ -58,7 +76,7 @@ const AppContent: React.FC = () => {
                     onBack={() => setSelectedJob(null)} 
                     onNavigate={(tab) => {
                         setSelectedJob(null);
-                        setActiveTab(tab);
+                        handleTabChange(tab);
                     }}
                   />
               </Suspense>
@@ -81,17 +99,17 @@ const AppContent: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case AppTab.HOME:
-        return <Home onChangeTab={setActiveTab} onJobSelect={setSelectedJob} />;
+        return <Home onChangeTab={handleTabChange} onJobSelect={setSelectedJob} />;
       case AppTab.MY_JOBS:
-        return <MyJobs onNavigate={setActiveTab} onJobSelect={setSelectedJob} />;
+        return <MyJobs onNavigate={handleTabChange} onJobSelect={setSelectedJob} />;
       case AppTab.CREATE:
-        return <CreateJob onBack={() => setActiveTab(AppTab.HOME)} onSuccess={(tab) => setActiveTab(tab)} />;
+        return <CreateJob onBack={handleBackFromCreate} onSuccess={(tab) => setActiveTab(tab)} />;
       case AppTab.PROFILE:
-        return <Profile onNavigate={setActiveTab} />;
+        return <Profile onNavigate={handleTabChange} />;
       case AppTab.MESSAGES:
-        return <Messages />;
+        return <Messages onJobSelect={setSelectedJob} />;
       default:
-        return <Home onChangeTab={setActiveTab} onJobSelect={setSelectedJob} />;
+        return <Home onChangeTab={handleTabChange} onJobSelect={setSelectedJob} />;
     }
   };
 
@@ -105,7 +123,7 @@ const AppContent: React.FC = () => {
         </Suspense>
         
         {activeTab !== AppTab.CREATE && (
-            <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+            <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
         )}
 
         <InfoModal 

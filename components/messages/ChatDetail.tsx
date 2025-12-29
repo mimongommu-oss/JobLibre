@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Phone, Send, DollarSign, Mic, MapPin, Plus, Camera, CalendarClock, X, Briefcase, Shield, Info, Lock } from 'lucide-react';
-import { Conversation, ChatMessage } from '../../types';
+import { ArrowLeft, Phone, Send, DollarSign, Mic, MapPin, Plus, Camera, CalendarClock, X, Briefcase, Shield, Info, Lock, ChevronRight } from 'lucide-react';
+import { Conversation, ChatMessage, Job } from '../../types';
 import { MOCK_USER, MOCK_JOBS, TIER_LIMITS } from '../../constants';
 import { useChat } from '../../hooks/useChat';
 import { MessageBubble } from './MessageBubble';
@@ -19,10 +19,10 @@ const ActionButton: React.FC<{ icon: any, color: string, bg: string, label: stri
     </button>
 );
 
-export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => void }> = ({ conversation, onBack }) => {
+export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => void, onJobSelect?: (job: Job) => void }> = ({ conversation, onBack, onJobSelect }) => {
     // --- HOOKS ---
     const { messages, isTyping, sendMessage, acceptOffer, refuseOffer } = useChat(conversation);
-    const { openInfoModal, user } = useUser();
+    const { openInfoModal, user, toggleMessageLike } = useUser();
     
     // --- LOCAL UI STATE ---
     const [inputText, setInputText] = useState('');
@@ -87,9 +87,19 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
         setIsNegotiating(false);
     };
 
+    const handleJobClick = () => {
+        if (relatedJob && onJobSelect) {
+            onJobSelect(relatedJob);
+        }
+    };
+
     const handlePhoneCall = () => {
         alert("Appel vers le " + conversation.withUser.name + "...");
         // window.location.href = 'tel:+241...';
+    };
+
+    const handleLike = (msgId: string) => {
+        toggleMessageLike(conversation.id, msgId);
     };
 
     return (
@@ -138,11 +148,14 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                 <Info size={12} className="text-white/70" />
             </button>
 
-            {/* Sticky Job Context Bar (FIX #1) */}
+            {/* Sticky Job Context Bar (CLICKABLE) */}
             {relatedJob && showJobContext && (
-                <div className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-between animate-in slide-in-from-top-2 relative z-10">
+                <div 
+                    onClick={handleJobClick}
+                    className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-between animate-in slide-in-from-top-2 relative z-10 cursor-pointer active:bg-blue-100 transition-colors group"
+                >
                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 text-blue-600">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 text-blue-600 group-hover:scale-110 transition-transform">
                             <Briefcase size={14} />
                         </div>
                         <div className="min-w-0">
@@ -150,12 +163,15 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                             <div className="text-xs font-bold text-blue-900 truncate">{relatedJob.title}</div>
                         </div>
                     </div>
-                    <button 
-                        onClick={() => setShowJobContext(false)}
-                        className="p-1.5 hover:bg-blue-100 text-blue-400 rounded-full transition-colors"
-                    >
-                        <X size={14} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <ChevronRight size={16} className="text-blue-300" />
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setShowJobContext(false); }}
+                            className="p-1.5 hover:bg-blue-200 text-blue-400 rounded-full transition-colors"
+                        >
+                            <X size={14} />
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -173,6 +189,7 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                             onCounter={() => handleCounterOffer(msg.metadata?.amount || 0)}
                             onAccept={() => acceptOffer(msg.id, msg.metadata?.amount || 0)}
                             onRefuse={() => refuseOffer(msg.id)}
+                            onLike={() => handleLike(msg.id)}
                             isOutdated={isOutdated}
                         />
                     );

@@ -1,10 +1,10 @@
 
 import React, { useMemo, useState } from 'react';
-import { MapPin, Briefcase, Users, Crown, Star, Lock, Zap, Bookmark, User, Send, Phone, Settings, Lightbulb, Eye, TrendingUp, MoreHorizontal, Flag, Trash2, Edit, MessageCircle } from 'lucide-react';
+import { MapPin, Briefcase, Users, Crown, Star, Lock, Zap, Bookmark, User, Send, Phone, Settings, Lightbulb, Eye, TrendingUp, MoreHorizontal, Flag, Trash2, Edit, MessageCircle, ImageIcon, Heart } from 'lucide-react';
 import { Job } from '../types';
 import { useUser } from '../context/UserContext';
 import { cn, formatMoney, parseLocation } from '../lib/utils';
-import { TIER_LIMITS } from '../constants';
+import { TIER_LIMITS, DEFAULT_JOB_PHOTOS } from '../constants';
 
 interface JobCardProps {
   job: Job;
@@ -24,11 +24,13 @@ const GlassShine = () => {
 };
 
 export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
-    const { user, toggleSavedJob, savedJobIds, addNotification, setActiveCommentJobId } = useUser();
+    const { user, toggleSavedJob, savedJobIds, addNotification, setActiveCommentJobId, toggleJobLike } = useUser();
     const [showMenu, setShowMenu] = useState(false);
     
     const isSaved = savedJobIds.includes(job.id);
     const isHiring = job.type === 'hiring';
+    const isLiked = job.likedByMe;
+    const likeCount = job.likes || 0;
 
     // --- OWNER CHECK ---
     const isOwner = job.postedBy.id === user.id;
@@ -70,6 +72,10 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
         'monthly': '/mois'
     }[job.pricingUnit || 'fixed'];
 
+    // --- IMAGE LOGIC ---
+    const hasImages = job.images && job.images.length > 0;
+    const coverImage = hasImages ? job.images![0] : null;
+
     const handleSave = (e: React.MouseEvent) => {
         e.stopPropagation();
         toggleSavedJob(job.id);
@@ -79,6 +85,11 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
         } else {
             addNotification('Retiré', 'Annonce retirée de vos favoris', 'info');
         }
+    };
+
+    const handleLike = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleJobLike(job.id);
     };
 
     const handleComment = (e: React.MouseEvent) => {
@@ -291,6 +302,23 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
                     </div>
                 </div>
 
+                {/* --- IMAGE SECTION (Restored for aesthetics) --- */}
+                {coverImage && (
+                    <div className="mb-4 -mx-5 sm:mx-0 sm:rounded-2xl overflow-hidden relative h-32 bg-gray-100 group-hover:h-40 transition-all duration-500">
+                        <img 
+                            src={coverImage} 
+                            alt={job.title} 
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        {job.images && job.images.length > 1 && (
+                            <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-md text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                                <ImageIcon size={8} /> +{job.images.length - 1}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* BODY: Content */}
                 <div className="mb-4 relative z-10">
                     <h3 className="font-black text-lg text-gray-900 leading-tight mb-2 line-clamp-1">
@@ -300,11 +328,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
                         <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border border-gray-200/50">
                             {job.category}
                         </span>
+                        {/* --- FULL LOCATION DISPLAY FIX --- */}
                         <span className={cn(
                             "flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border",
                             isNeighborhoodMatch ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-blue-50 text-blue-600 border-blue-100"
                         )}>
-                            <MapPin size={10} /> {job.location.split(',')[0]}
+                            <MapPin size={10} /> {job.location}
                         </span>
                     </div>
                     <p className="text-sm text-gray-500 font-medium leading-relaxed line-clamp-2">
@@ -337,25 +366,39 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2">
+                        {/* LIKE BUTTON - CLEANED UP (No Box) */}
+                        <button 
+                            onClick={handleLike}
+                            className="p-2 transition-transform active:scale-75 group relative hover:bg-gray-50 rounded-full"
+                        >
+                            <Heart size={20} className={cn("transition-all", isLiked ? "fill-red-500 text-red-500 animate-wiggle-violent" : "text-gray-300 group-hover:text-gray-400")} />
+                            {likeCount > 0 && (
+                                <span className={cn(
+                                    "absolute -top-0 -right-0 text-[8px] font-bold px-1 rounded-full",
+                                    isLiked ? "text-red-500" : "text-gray-400"
+                                )}>
+                                    {likeCount}
+                                </span>
+                            )}
+                        </button>
+
                          <button 
                             onClick={handleSave}
                             className={cn(
-                                "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 border active:scale-75",
-                                isSaved 
-                                    ? "bg-red-50 text-red-500 border-red-200 shadow-sm" 
-                                    : "bg-white text-gray-300 border-gray-100 hover:border-gray-200 hover:text-gray-400"
+                                "p-2 rounded-full transition-all duration-300 active:scale-75 hidden xs:flex hover:bg-gray-50",
+                                isSaved ? "text-blue-500" : "text-gray-300 hover:text-gray-400"
                             )}
                         >
-                            <Bookmark size={18} className={cn("transition-all duration-300", isSaved ? "fill-current scale-110" : "")} />
+                            <Bookmark size={20} className={cn("transition-all duration-300", isSaved ? "fill-current scale-110" : "")} />
                         </button>
 
                         <button 
                             onClick={handleComment}
-                            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 border bg-white text-gray-300 border-gray-100 hover:border-gray-200 hover:text-gray-400 active:scale-75 relative"
+                            className="p-2 rounded-full transition-all duration-300 active:scale-75 hidden xs:flex hover:bg-gray-50 text-gray-300 hover:text-gray-400 relative"
                         >
-                            <MessageCircle size={18} />
+                            <MessageCircle size={20} />
                             {commentCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-jobgreen text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white">
+                                <span className="absolute -top-0 -right-0 bg-jobgreen text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold border border-white">
                                     {commentCount}
                                 </span>
                             )}
@@ -364,7 +407,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
                         <button
                             onClick={handleActionClick}
                             className={cn(
-                                "h-10 px-4 rounded-xl flex items-center gap-2 text-xs font-black uppercase tracking-wide shadow-sm transition-transform active:scale-95",
+                                "h-10 px-4 rounded-xl flex items-center gap-2 text-xs font-black uppercase tracking-wide shadow-sm transition-transform active:scale-95 ml-2",
                                 isOwner 
                                     ? "bg-gray-100 text-gray-600 hover:bg-gray-200" 
                                 : isLocked
@@ -375,14 +418,17 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onClick, onAction }) => {
                             )}
                         >
                             {isOwner ? (
-                                <>Gérer <Settings size={14} /></>
+                                <Settings size={16} />
                             ) : isLocked ? (
-                                <>Débloquer <Lock size={14} /></>
+                                <Lock size={16} />
                             ) : isHiring ? (
-                                <>Postuler <Send size={14} /></>
+                                <Send size={16} />
                             ) : (
-                                <>Contacter <Phone size={14} /></>
+                                <Phone size={16} />
                             )}
+                            <span className="hidden sm:inline">
+                                {isOwner ? "Gérer" : isLocked ? "Débloquer" : isHiring ? "Postuler" : "Contacter"}
+                            </span>
                         </button>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shield, DollarSign, Play, MapPin, CheckCheck, RefreshCw, XCircle, Lock } from 'lucide-react';
+import { Shield, DollarSign, Play, MapPin, CheckCheck, RefreshCw, XCircle, Lock, Heart } from 'lucide-react';
 import { ChatMessage } from '../../types';
 import { Button } from '../ui/Button';
 import { useUser } from '../../context/UserContext';
@@ -12,10 +12,11 @@ interface MessageBubbleProps {
     onCounter?: () => void;
     onAccept?: () => void;
     onRefuse?: () => void;
+    onLike: () => void; // New prop
     isOutdated?: boolean;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCounter, onAccept, onRefuse, isOutdated }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCounter, onAccept, onRefuse, onLike, isOutdated }) => {
     const { user } = useUser();
     
     // Check specific status
@@ -31,9 +32,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCount
     // Style adjustments if rejected
     const bubbleOpacity = isRejected ? 'opacity-70 bg-gray-50' : 'bg-white';
     
+    const likeCount = msg.likes || 0;
+    const isLiked = msg.likedByMe;
+
     return (
-        <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-[20px] p-3 shadow-sm transition-all ${
+        <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-2`}>
+            <div className={`max-w-[85%] rounded-[20px] p-3 shadow-sm transition-all relative group ${
                 isMe 
                 ? 'bg-jobgreen text-white rounded-tr-sm' 
                 : `${bubbleOpacity} text-gray-900 rounded-tl-sm border border-gray-100`
@@ -178,6 +182,24 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCount
                     {msg.timestamp}
                     {isMe && <CheckCheck size={12} />}
                 </div>
+
+                {/* --- REACTION FLOATING HEART (Clean, no box) --- */}
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onLike(); }}
+                    className={`absolute -bottom-3 ${isMe ? 'left-2' : 'right-2'} flex items-center gap-1 transition-all active:scale-90 z-20 ${isLiked ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
+                >
+                    <div className="p-1">
+                        <Heart 
+                            size={14} 
+                            className={isLiked ? "fill-red-500 text-red-500 animate-wiggle-violent drop-shadow-sm" : "text-gray-400"} 
+                        />
+                    </div>
+                    {likeCount > 0 && (
+                        <span className={`text-[9px] font-black ${isLiked ? (isMe ? 'text-white' : 'text-red-600') : 'text-gray-500'}`}>
+                            {likeCount}
+                        </span>
+                    )}
+                </button>
             </div>
         </div>
     );
