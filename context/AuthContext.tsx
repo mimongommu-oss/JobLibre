@@ -1,10 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Transaction } from '../types';
+import { User, Transaction, UserRole } from '../types';
 import { MOCK_USER, MOCK_TRANSACTIONS } from '../constants';
 
 interface AuthContextType {
     user: User;
+    isAuthenticated: boolean;
+    isAdmin: boolean;
+    login: (role: UserRole) => void;
+    logout: () => void;
     transactions: Transaction[];
     updateUser: (updates: Partial<User>) => void;
     spendCoins: (amount: number, description: string) => boolean;
@@ -19,9 +23,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const STORAGE_KEYS = {
     USER: 'joblibre_user_v1',
     TRANSACTIONS: 'joblibre_transactions_v1',
+    IS_AUTH: 'joblibre_is_auth_v1'
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        return localStorage.getItem(STORAGE_KEYS.IS_AUTH) === 'true';
+    });
+
     const [user, setUser] = useState<User>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEYS.USER);
@@ -38,6 +47,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user)), [user]);
     useEffect(() => localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions)), [transactions]);
+    useEffect(() => localStorage.setItem(STORAGE_KEYS.IS_AUTH, String(isAuthenticated)), [isAuthenticated]);
+
+    const login = (role: UserRole) => {
+        if (role === 'admin') {
+            setUser(prev => ({ ...prev, role: 'admin', name: 'Administrateur', avatar: 'https://cdn-icons-png.flaticon.com/512/9703/9703596.png' }));
+        } else {
+            setUser(prev => ({ ...prev, role, name: 'Marc O. (Moi)', avatar: MOCK_USER.avatar }));
+        }
+        setIsAuthenticated(true);
+    };
+
+    const logout = () => {
+        setIsAuthenticated(false);
+        setUser(MOCK_USER); // Reset to default mock
+    };
 
     const updateUser = (updates: Partial<User>) => {
         setUser(prev => ({ ...prev, ...updates }));
@@ -73,7 +97,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return (
         <AuthContext.Provider value={{
-            user, transactions, updateUser, spendCoins, addCoins, spendCash, addCash, addTransaction
+            user, 
+            isAuthenticated,
+            isAdmin: user.role === 'admin',
+            login,
+            logout,
+            transactions, 
+            updateUser, 
+            spendCoins, 
+            addCoins, 
+            spendCash, 
+            addCash, 
+            addTransaction
         }}>
             {children}
         </AuthContext.Provider>

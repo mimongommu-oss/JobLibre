@@ -1,23 +1,30 @@
 
-export type UserRole = 'client' | 'pro';
+export type UserRole = 'client' | 'pro' | 'admin'; // Added admin
 export type UserTier = 'standard' | 'verified' | 'premium';
 export type PricingUnit = 'fixed' | 'hourly' | 'daily' | 'monthly';
+
+export interface VerificationDoc {
+    type: 'id_card' | 'passport' | 'driver_license' | 'residence_proof' | 'security_video';
+    status: 'missing' | 'pending' | 'verified' | 'rejected';
+    uploadedAt?: string;
+    url?: string;
+}
 
 export interface User {
   id: string;
   name: string;
   role: UserRole;
-  tier: UserTier; // Nouveau champ Tier
+  tier: UserTier; 
   avatar: string;
-  isVerified: boolean; // Gardé pour rétrocompatibilité visuelle, mais lié au tier
+  isVerified: boolean; 
   rating: number;
   jobsCompleted: number;
   skills?: string[];
-  location?: string; // Format attendu: "Quartier, Ville" ou juste "Ville"
+  location?: string; 
   available?: boolean;
   wealth: number; 
   bronzeCoins: number; 
-  isPremium?: boolean; // Gardé pour rétrocompatibilité
+  isPremium?: boolean; 
   
   // Quotas
   monthlyApplicationsUsed: number;
@@ -25,11 +32,15 @@ export interface User {
   
   // New: Tracking
   appliedJobIds: string[];
+
+  // Identity & Verification
+  verificationScore: number; // 0 to 100
+  verificationDocs: VerificationDoc[];
 }
 
 export interface TargetZone {
     scope: 'COUNTRY' | 'CITY' | 'NEIGHBORHOOD';
-    value: string; // "Gabon", "Libreville", "Louis", etc.
+    value: string; 
 }
 
 export interface JobComment {
@@ -40,7 +51,6 @@ export interface JobComment {
     text: string;
     timestamp: string;
     isOwner?: boolean;
-    // Likes
     likes?: number;
     likedByMe?: boolean;
 }
@@ -51,10 +61,10 @@ export interface Job {
   title: string;
   description: string;
   category: string;
-  budget: number; // in XAF
-  pricingUnit?: PricingUnit; // NOUVEAU: Unité de prix
-  location: string; // Localisation précise du job (ex: Quartier Louis)
-  targetZone?: TargetZone; // NOUVEAU: Zone de visibilité (Qui peut voir ça ?)
+  budget: number; 
+  pricingUnit?: PricingUnit; 
+  location: string; 
+  targetZone?: TargetZone; 
   status: 'open' | 'negotiating' | 'taken' | 'completed';
   postedBy: User;
   createdAt: string;
@@ -63,18 +73,12 @@ export interface Job {
   applicants?: number;
   assignedTo?: User;
   negotiable?: boolean;
-  images?: string[]; // Ajout des images
-  views?: number; // NOUVEAU: Compteur de vues
-  
-  // Likes
+  images?: string[]; 
+  views?: number; 
   likes?: number;
   likedByMe?: boolean;
-  
-  // New visibility rules
-  minTierRequired?: UserTier; // Le tier minimum pour voir/postuler
-  
-  // Social
-  comments?: JobComment[]; // Commentaires publics
+  minTierRequired?: UserTier; 
+  comments?: JobComment[]; 
 }
 
 export interface ChatMessage {
@@ -83,18 +87,17 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   isSystem?: boolean;
-  type?: 'text' | 'offer' | 'escrow_release' | 'image' | 'voice' | 'location' | 'negotiation' | 'application'; // Added 'application'
+  type?: 'text' | 'offer' | 'escrow_release' | 'image' | 'voice' | 'location' | 'negotiation' | 'application'; 
   metadata?: {
       amount?: number;
-      duration?: string; // For voice
-      lat?: number; // For location
-      lng?: number; // For location
+      duration?: string; 
+      lat?: number; 
+      lng?: number; 
       status?: 'pending' | 'accepted' | 'rejected' | 'completed' | 'countered';
       counterOffer?: number;
-      jobId?: string; // Link message to a job
+      jobId?: string; 
       url?: string;
   };
-  // Reactions
   likes?: number;
   likedByMe?: boolean;
 }
@@ -115,23 +118,26 @@ export interface StatusStory {
     type: 'urgent_job' | 'info';
     text: string;
     expiresAt: string;
-    jobId?: string; // Link to the full job details
-    views?: number; // NOUVEAU: Compteur de vues
+    jobId?: string; 
+    views?: number; 
 }
 
 export interface Transaction {
     id: string;
     type: 'credit' | 'debit' | 'escrow_lock' | 'escrow_release' | 'coin_purchase' | 'gift_sent' | 'subscription';
-    amount: number; // Can be FCFA or Coins depending on context
+    amount: number; 
     currency: 'XAF' | 'COIN';
     description: string;
     date: string;
     status: 'completed' | 'pending' | 'failed';
+    userId?: string; // For Admin view
 }
 
 export enum AppTab {
+  AUTH = 'auth', // New
+  ADMIN = 'admin', // New
   HOME = 'home',
-  MY_JOBS = 'my_jobs', // Replaced HALL_OF_AME
+  MY_JOBS = 'my_jobs', 
   CREATE = 'create',
   MESSAGES = 'messages',
   PROFILE = 'profile',
@@ -143,7 +149,17 @@ export interface CurrencyBreakdown {
     copper: number;
 }
 
-// Updated Notification Interface
+// --- INTELLIGENT ACTION SYSTEM ---
+export type ActionType = 
+    | 'view_job' 
+    | 'validate_mission' 
+    | 'boost_job' 
+    | 'verify_identity' 
+    | 'complete_profile' 
+    | 'recharge_wallet' 
+    | 'upgrade_premium'
+    | 'create_job';
+
 export interface AppNotification {
     id: string;
     title: string;
@@ -153,20 +169,25 @@ export interface AppNotification {
     type: 'info' | 'success' | 'alert';
     action?: {
         label: string;
-        target?: string;
-        actionType?: 'view_job' | 'boost' | 'verify';
+        actionType: ActionType;
+        targetId?: string; // ID of job, user, etc.
+        contextData?: any; // Extra data (e.g. { tab: 'video' })
     };
-    icon?: string; // Lucide icon name hint
+    icon?: string; 
 }
 
-// State for the Global Info Modal
+export interface GlobalActionPayload {
+    type: ActionType;
+    targetId?: string;
+    contextData?: any;
+}
+
 export interface InfoModalState {
     isOpen: boolean;
     title: string;
     content: string;
 }
 
-// --- COMMERCE TYPES ---
 export interface CoinPack {
     id: string;
     name: string;

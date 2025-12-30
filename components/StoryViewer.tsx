@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Send, Zap, ChevronRight, Phone, MessageCircle, Briefcase, MapPin, ExternalLink, Eye } from 'lucide-react';
-import { StatusStory, Job } from '../types';
+import { StatusStory, Job, AppTab } from '../types';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { useUser } from '../context/UserContext';
@@ -14,7 +14,11 @@ interface StoryViewerProps {
 }
 
 export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialStoryId, onClose, onViewJob }) => {
-    const { addNotification, jobs, user, incrementStoryView } = useUser();
+    const { addNotification, jobs, user, incrementStoryView, getOrCreateConversation, addMessageToConversation, setActiveConversationId } = useUser();
+    // Context needed to switch tabs via a hack or prop if available, 
+    // strictly speaking StoryViewer is usually mounted at App level. 
+    // We will rely on setActiveConversationId which triggers the effect in App.tsx.
+
     // Find initial index
     const startIndex = stories.findIndex(s => s.id === initialStoryId);
     const [currentIndex, setCurrentIndex] = useState(startIndex >= 0 ? startIndex : 0);
@@ -100,6 +104,17 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialStoryI
         if (currentStory.type === 'urgent_job') {
             // ACTION FOR URGENT: Apply / "Je suis dispo"
             addNotification('Candidature Fast-Track', `Votre profil a été envoyé en priorité à ${currentStory.user.name}`, 'success');
+            
+            // Create conversation + send auto message
+            const convId = getOrCreateConversation(currentStory.user, relatedJob || undefined);
+            addMessageToConversation(convId, {
+                id: Date.now().toString(),
+                senderId: user.id,
+                text: "👋 Je suis disponible immédiatement pour votre urgence !",
+                timestamp: "À l'instant",
+                type: 'text'
+            });
+            setActiveConversationId(convId);
             onClose();
         }
     };
@@ -117,8 +132,25 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, initialStoryI
         if (!replyText.trim()) return;
         
         setIsPaused(true);
-        // Simulate sending message
-        alert(`Message envoyé à ${currentStory.user.name}: "${replyText}"`);
+        
+        // 1. Create or Get Conversation
+        const convId = getOrCreateConversation(currentStory.user, relatedJob || undefined);
+        
+        // 2. Add Message with Context
+        addMessageToConversation(convId, {
+            id: Date.now().toString(),
+            senderId: user.id,
+            text: `Réponse à votre story : "${replyText}"`,
+            timestamp: "À l'instant",
+            type: 'text',
+            metadata: {
+                // Optional: link to story content?
+            }
+        });
+
+        // 3. Trigger Redirection (App.tsx listens to activeConversationId)
+        setActiveConversationId(convId);
+        
         setReplyText('');
         onClose();
     };

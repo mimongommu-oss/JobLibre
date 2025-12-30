@@ -2,18 +2,18 @@
 import React, { useState } from 'react';
 import { X, Bell, Zap, CheckCircle2, Info, Trash2, ArrowRight } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useUI } from '../context/UIContext';
 import { AppNotification } from '../types';
 import { cn } from '../lib/utils';
 
 interface SmartNotificationDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    // New Callback Prop to trigger app navigation
-    onAction: (actionType: string, target?: string) => void;
 }
 
-export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = ({ isOpen, onClose, onAction }) => {
-    const { notifications, markNotificationsRead, deleteNotification, openInfoModal } = useUser();
+export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = ({ isOpen, onClose }) => {
+    const { notifications, markNotificationsRead, deleteNotification } = useUser();
+    const { triggerAction } = useUI(); // Use UI Dispatcher
     const [activeFilter, setActiveFilter] = useState<'all' | 'priority'>('all');
 
     if (!isOpen) return null;
@@ -45,9 +45,9 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
 
     const handleActionClick = (notif: AppNotification) => {
         if (notif.action) {
-            // Trigger the parent navigation
-            onAction(notif.action.actionType, notif.action.target);
-            onClose(); // Auto close drawer after action
+            // FIRE THE GLOBAL REPAIR ACTION
+            triggerAction(notif.action.actionType, notif.action.targetId, notif.action.contextData);
+            onClose(); // Close drawer immediately to show the solution
         }
     };
 
@@ -127,8 +127,9 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                         filteredNotifications.map((notif) => (
                             <div 
                                 key={notif.id} 
+                                onClick={() => handleActionClick(notif)} // Whole card is clickable if action
                                 className={cn(
-                                    "p-4 rounded-2xl border transition-all relative group animate-in slide-in-from-bottom-4 duration-300",
+                                    "p-4 rounded-2xl border transition-all relative group animate-in slide-in-from-bottom-4 duration-300 cursor-pointer active:scale-[0.98]",
                                     getBgColor(notif.type),
                                     !notif.read && "shadow-sm ring-1 ring-inset ring-black/5"
                                 )}
@@ -156,9 +157,8 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                                         {/* Action Button if Present */}
                                         {notif.action && (
                                             <button 
-                                                onClick={() => handleActionClick(notif)}
                                                 className={cn(
-                                                "w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-transform active:scale-95 bg-white text-gray-900 border border-gray-200 shadow-sm hover:bg-gray-50"
+                                                "w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-transform bg-white text-gray-900 border border-gray-200 shadow-sm hover:bg-gray-50 group-hover:border-jobgreen/30"
                                             )}>
                                                 {notif.action.label} <ArrowRight size={14} />
                                             </button>
@@ -176,19 +176,6 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                             </div>
                         ))
                     )}
-                </div>
-
-                {/* Footer Insight */}
-                <div className="p-4 bg-gray-50 border-t border-gray-100">
-                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-jobgreen to-green-600 flex items-center justify-center text-white font-bold text-xs">
-                            JL
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Conseil du jour</p>
-                            <p className="text-xs font-bold text-gray-900">Répondez en &lt; 5 min pour gagner 2x plus de jobs.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

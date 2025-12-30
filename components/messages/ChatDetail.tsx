@@ -1,13 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Phone, Send, DollarSign, Mic, MapPin, Plus, Camera, CalendarClock, X, Briefcase, Shield, Info, Lock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Phone, Send, DollarSign, Mic, MapPin, Plus, Camera, CalendarClock, X, Briefcase, Shield, Info, Lock, ChevronRight, StopCircle, Check } from 'lucide-react';
 import { Conversation, ChatMessage, Job } from '../../types';
 import { MOCK_USER, MOCK_JOBS, TIER_LIMITS } from '../../constants';
 import { useChat } from '../../hooks/useChat';
 import { MessageBubble } from './MessageBubble';
 import { NegotiationDrawer } from './NegotiationDrawer';
-import { formatMoney } from '../../lib/utils';
+import { formatMoney, cn } from '../../lib/utils';
 import { useUser } from '../../context/UserContext';
+import { Button } from '../ui/Button';
 
 // Helper for the Action Menu Buttons
 const ActionButton: React.FC<{ icon: any, color: string, bg: string, label: string, onClick: () => void, disabled?: boolean }> = ({ icon: Icon, color, bg, label, onClick, disabled }) => (
@@ -18,6 +19,111 @@ const ActionButton: React.FC<{ icon: any, color: string, bg: string, label: stri
         <span className="text-xs font-bold text-gray-600">{label}</span>
     </button>
 );
+
+// --- CALL CONFIRMATION MODAL ---
+const CallModal: React.FC<{ isOpen: boolean, onClose: () => void, user: any }> = ({ isOpen, onClose, user }) => {
+    if (!isOpen) return null;
+    
+    // Simulate a phone number based on user ID for demo consistency
+    const fakeNumber = `+241 07 ${Math.floor(Math.random()*10)}${Math.floor(Math.random()*10)} ${Math.floor(Math.random()*10)}${Math.floor(Math.random()*10)} ${Math.floor(Math.random()*10)}${Math.floor(Math.random()*10)}`;
+
+    const handleCall = () => {
+        // In a real app this opens the dialer
+        window.location.href = `tel:${fakeNumber.replace(/\s/g, '')}`;
+        setTimeout(onClose, 500);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={onClose}></div>
+            <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-10 shadow-2xl pb-safe">
+                
+                <div className="flex flex-col items-center text-center">
+                    <div className="relative mb-4">
+                        <img src={user.avatar} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg" />
+                        <div className="absolute bottom-1 right-1 bg-green-500 border-4 border-white w-6 h-6 rounded-full"></div>
+                    </div>
+                    
+                    <h3 className="text-2xl font-black text-gray-900 mb-1">{user.name}</h3>
+                    <p className="text-lg font-bold text-gray-500 mb-6">{fakeNumber}</p>
+                    
+                    <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-6 text-left w-full flex gap-3">
+                        <Shield className="text-orange-600 shrink-0" size={20} />
+                        <div className="text-xs text-orange-800 leading-relaxed">
+                            <span className="font-bold">Avertissement Sécurité</span><br/>
+                            N'envoyez jamais d'argent (Airtel/MoMo) directement. Utilisez toujours le paiement sécurisé de l'application pour être protégé.
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 w-full">
+                        <Button variant="ghost" onClick={onClose} className="flex-1 font-bold border-2 border-gray-100 h-14">
+                            Annuler
+                        </Button>
+                        <Button onClick={handleCall} className="flex-[2] bg-green-600 hover:bg-green-700 text-white font-bold h-14 shadow-lg shadow-green-200">
+                            <Phone className="mr-2" size={20} fill="currentColor" /> Appeler
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- PRO ACCEPTANCE TERMS MODAL ---
+const AcceptTermsModal: React.FC<{ isOpen: boolean, onClose: () => void, onConfirm: () => void, amount: number }> = ({ isOpen, onClose, onConfirm, amount }) => {
+    const [accepted, setAccepted] = useState(false);
+    
+    useEffect(() => {
+        if (isOpen) setAccepted(false);
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={onClose}></div>
+            <div className="bg-white w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-10 shadow-2xl pb-safe">
+                
+                <h2 className="text-xl font-black text-gray-900 mb-4 flex items-center gap-2">
+                    <Shield className="text-jobgreen" size={24} /> Validation Mission
+                </h2>
+
+                <div className="bg-green-50 p-4 rounded-2xl border border-green-100 mb-6 text-center">
+                    <div className="text-xs font-bold text-green-700 uppercase mb-1">Montant à recevoir</div>
+                    <div className="text-3xl font-black text-green-900">{formatMoney(amount)} F</div>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                    <label className="flex gap-3 p-3 rounded-xl border border-gray-200 bg-white cursor-pointer active:scale-[0.99] transition-transform">
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 ${accepted ? 'bg-jobgreen border-jobgreen text-white' : 'border-gray-300'}`}>
+                            {accepted && <Check size={14} strokeWidth={3} />}
+                        </div>
+                        <input type="checkbox" className="hidden" checked={accepted} onChange={() => setAccepted(!accepted)} />
+                        <div className="text-xs text-gray-600 font-medium leading-relaxed">
+                            Je m'engage à réaliser la mission avec professionnalisme et je comprends que le paiement ne sera libéré qu'après validation du client.
+                        </div>
+                    </label>
+                </div>
+
+                <div className="flex gap-3">
+                    <Button variant="ghost" onClick={onClose} className="flex-1 font-bold border-2 border-gray-100 h-14">
+                        Annuler
+                    </Button>
+                    <Button 
+                        onClick={onConfirm} 
+                        disabled={!accepted}
+                        className={cn(
+                            "flex-[2] font-bold h-14 shadow-lg",
+                            accepted ? "bg-jobgreen text-white shadow-green-200" : "bg-gray-200 text-gray-400 shadow-none cursor-not-allowed"
+                        )}
+                    >
+                        Accepter
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => void, onJobSelect?: (job: Job) => void }> = ({ conversation, onBack, onJobSelect }) => {
     // --- HOOKS ---
@@ -30,7 +136,18 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
     const [isNegotiating, setIsNegotiating] = useState(false);
     const [negotiationBaseAmount, setNegotiationBaseAmount] = useState<number>(15000); 
     const [negotiationMode, setNegotiationMode] = useState<'new' | 'counter'>('new');
-    const [showJobContext, setShowJobContext] = useState(true); // New State
+    const [showJobContext, setShowJobContext] = useState(true);
+    const [showCallModal, setShowCallModal] = useState(false);
+    
+    // Terms Modal State
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [pendingOfferId, setPendingOfferId] = useState<string | null>(null);
+    const [pendingOfferAmount, setPendingOfferAmount] = useState(0);
+    
+    // Recording State
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const recordingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +162,7 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages, isTyping]);
+    }, [messages, isTyping, isRecording]);
 
     // --- HANDLERS ---
     const handleSendClick = () => {
@@ -56,6 +173,31 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') handleSendClick();
+    };
+
+    // --- RECORDING LOGIC ---
+    const startRecording = () => {
+        setIsRecording(true);
+        setRecordingTime(0);
+        recordingInterval.current = setInterval(() => {
+            setRecordingTime(prev => prev + 1);
+        }, 1000);
+    };
+
+    const stopRecording = (cancel = false) => {
+        if (recordingInterval.current) {
+            clearInterval(recordingInterval.current);
+        }
+        setIsRecording(false);
+        
+        if (!cancel && recordingTime > 0) {
+            // Format duration
+            const mins = Math.floor(recordingTime / 60);
+            const secs = recordingTime % 60;
+            const durationStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+            sendMessage(`Vocal (${durationStr})`, 'voice', { duration: durationStr });
+        }
+        setRecordingTime(0);
     };
 
     const handleCounterOffer = (amountToCounter: number) => {
@@ -94,12 +236,33 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
     };
 
     const handlePhoneCall = () => {
-        alert("Appel vers le " + conversation.withUser.name + "...");
-        // window.location.href = 'tel:+241...';
+        setShowCallModal(true);
     };
 
     const handleLike = (msgId: string) => {
         toggleMessageLike(conversation.id, msgId);
+    };
+
+    // --- ACCEPT FLOW ---
+    const initiateAccept = (msgId: string, amount: number) => {
+        setPendingOfferId(msgId);
+        setPendingOfferAmount(amount);
+        setShowTermsModal(true);
+    };
+
+    const confirmAccept = () => {
+        if (pendingOfferId) {
+            acceptOffer(pendingOfferId, pendingOfferAmount);
+            setShowTermsModal(false);
+            setPendingOfferId(null);
+        }
+    };
+
+    // Helper for formatting recording time
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     return (
@@ -187,7 +350,7 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                             msg={msg} 
                             isMe={msg.senderId === MOCK_USER.id} 
                             onCounter={() => handleCounterOffer(msg.metadata?.amount || 0)}
-                            onAccept={() => acceptOffer(msg.id, msg.metadata?.amount || 0)}
+                            onAccept={() => initiateAccept(msg.id, msg.metadata?.amount || 0)} // Trigger Terms Modal
                             onRefuse={() => refuseOffer(msg.id)}
                             onLike={() => handleLike(msg.id)}
                             isOutdated={isOutdated}
@@ -210,7 +373,7 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
             {/* --- BOTTOM INPUT AREA --- */}
             <div className="bg-white border-t border-gray-200 pb-safe transition-all duration-300">
                 {/* Menu */}
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen && !isRecording ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <div className="px-4 pt-4 pb-2 flex gap-4 overflow-x-auto no-scrollbar justify-between sm:justify-start">
                         <ActionButton 
                             icon={DollarSign} color="text-yellow-700" bg="bg-yellow-50" label={canNegotiate ? "Offre" : "Bloqué"} 
@@ -232,42 +395,76 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                     </div>
                 </div>
 
-                {/* Input Bar */}
-                <div className="p-2 px-3 flex items-end gap-2">
-                    <button 
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                            isMenuOpen ? 'bg-gray-200 rotate-45 text-gray-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                        }`}
-                    >
-                        <Plus size={24} />
-                    </button>
+                {/* Input Bar or Recording Bar */}
+                <div className="p-2 px-3">
+                    {isRecording ? (
+                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 h-[44px]">
+                            <button 
+                                onClick={() => stopRecording(true)}
+                                className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 text-gray-500 hover:text-red-500 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                            
+                            <div className="flex-1 bg-red-50 rounded-full px-4 py-2 flex items-center gap-3 border border-red-100">
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                <span className="text-red-600 font-bold font-mono text-sm">{formatTime(recordingTime)}</span>
+                                <div className="flex-1 flex items-center gap-0.5 h-4 opacity-50">
+                                    {[...Array(10)].map((_, i) => (
+                                        <div 
+                                            key={i} 
+                                            className="w-1 bg-red-400 rounded-full animate-pulse"
+                                            style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s` }} 
+                                        />
+                                    ))}
+                                </div>
+                            </div>
 
-                    <div className="flex-1 bg-gray-100 rounded-[24px] flex items-center px-4 py-1 min-h-[44px] border border-transparent focus-within:border-jobgreen/30 focus-within:bg-white transition-colors">
-                        <input 
-                            className="w-full bg-transparent text-[15px] font-medium py-2.5 focus:outline-none max-h-32"
-                            placeholder="Message..."
-                            value={inputText}
-                            onFocus={() => setIsMenuOpen(false)}
-                            onChange={(e) => setInputText(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                        />
-                    </div>
-                    
-                    {inputText.trim() ? (
-                        <button 
-                            onClick={handleSendClick}
-                            className="w-10 h-10 bg-jobgreen text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-700 active:scale-90 transition-all mb-0.5"
-                        >
-                            <Send size={20} className="ml-0.5" />
-                        </button>
+                            <button 
+                                onClick={() => stopRecording(false)}
+                                className="w-10 h-10 bg-jobgreen text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-700 active:scale-90 transition-all"
+                            >
+                                <Send size={20} className="ml-0.5" />
+                            </button>
+                        </div>
                     ) : (
-                        <button 
-                            onClick={() => sendMessage('Vocal (0:08)', 'voice', { duration: '0:08' })}
-                            className="w-10 h-10 bg-jobgreen text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-700 active:scale-90 transition-all mb-0.5"
-                        >
-                            <Mic size={20} />
-                        </button>
+                        <div className="flex items-end gap-2">
+                            <button 
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                    isMenuOpen ? 'bg-gray-200 rotate-45 text-gray-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                }`}
+                            >
+                                <Plus size={24} />
+                            </button>
+
+                            <div className="flex-1 bg-gray-100 rounded-[24px] flex items-center px-4 py-1 min-h-[44px] border border-transparent focus-within:border-jobgreen/30 focus-within:bg-white transition-colors">
+                                <input 
+                                    className="w-full bg-transparent text-[15px] font-medium py-2.5 focus:outline-none max-h-32"
+                                    placeholder="Message..."
+                                    value={inputText}
+                                    onFocus={() => setIsMenuOpen(false)}
+                                    onChange={(e) => setInputText(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                />
+                            </div>
+                            
+                            {inputText.trim() ? (
+                                <button 
+                                    onClick={handleSendClick}
+                                    className="w-10 h-10 bg-jobgreen text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-700 active:scale-90 transition-all mb-0.5"
+                                >
+                                    <Send size={20} className="ml-0.5" />
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={startRecording}
+                                    className="w-10 h-10 bg-jobgreen text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-700 active:scale-90 transition-all mb-0.5"
+                                >
+                                    <Mic size={20} />
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
@@ -281,6 +478,21 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                     initialAmount={negotiationBaseAmount} 
                 />
             )}
+
+            {/* Call Modal */}
+            <CallModal 
+                isOpen={showCallModal} 
+                onClose={() => setShowCallModal(false)} 
+                user={conversation.withUser} 
+            />
+
+            {/* Terms Acceptance Modal */}
+            <AcceptTermsModal 
+                isOpen={showTermsModal} 
+                onClose={() => setShowTermsModal(false)} 
+                onConfirm={confirmAccept} 
+                amount={pendingOfferAmount} 
+            />
         </div>
     );
 };

@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Briefcase, FileText, ChevronRight, MapPin, Eye, Clock, CheckCircle2, XCircle, Search, Info } from 'lucide-react';
+import { Briefcase, FileText, ChevronRight, MapPin, Eye, Clock, CheckCircle2, XCircle, Search, Info, FolderOpen, ClipboardList } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Job, AppTab } from '../types';
 import { cn } from '../lib/utils';
@@ -92,14 +93,22 @@ export const MyJobs: React.FC<{ onNavigate: (tab: AppTab) => void, onJobSelect: 
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-12">
-                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <FileText size={32} className="text-gray-300" />
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                            <div className="relative w-24 h-24 mb-6">
+                                <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse opacity-50"></div>
+                                <div className="absolute inset-2 bg-white rounded-full border-4 border-green-50 flex items-center justify-center text-green-200">
+                                    <ClipboardList size={40} />
+                                </div>
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Aucune candidature</h3>
-                            <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Vous n'avez pas encore postulé à des offres. Explorez les missions disponibles.</p>
-                            <Button onClick={() => onNavigate(AppTab.HOME)} className="bg-jobgreen text-white px-6 py-3 rounded-xl font-bold">
-                                Trouver une mission
+                            <h3 className="text-xl font-black text-gray-900 mb-2">Aucune candidature</h3>
+                            <p className="text-gray-500 text-sm mb-8 font-medium max-w-[250px] mx-auto leading-relaxed">
+                                Vous n'avez pas encore postulé. C'est le moment de trouver votre prochaine mission !
+                            </p>
+                            <Button 
+                                onClick={() => onNavigate(AppTab.HOME)} 
+                                className="h-14 px-8 rounded-2xl bg-jobgreen text-white shadow-lg shadow-green-200 hover:bg-green-700 text-base font-bold flex items-center gap-2"
+                            >
+                                <Search size={20} /> Trouver une mission
                             </Button>
                         </div>
                     )
@@ -146,13 +155,21 @@ export const MyJobs: React.FC<{ onNavigate: (tab: AppTab) => void, onJobSelect: 
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-12">
-                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Briefcase size={32} className="text-gray-300" />
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                            <div className="relative w-24 h-24 mb-6">
+                                <div className="absolute inset-0 bg-yellow-100 rounded-full animate-pulse opacity-50"></div>
+                                <div className="absolute inset-2 bg-white rounded-full border-4 border-yellow-50 flex items-center justify-center text-yellow-200">
+                                    <FolderOpen size={40} />
+                                </div>
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Aucune annonce</h3>
-                            <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">Vous n'avez rien publié pour le moment. Besoin d'aide pour un service ?</p>
-                            <Button onClick={() => onNavigate(AppTab.CREATE)} className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold">
+                            <h3 className="text-xl font-black text-gray-900 mb-2">Aucune annonce</h3>
+                            <p className="text-gray-500 text-sm mb-8 font-medium max-w-[250px] mx-auto leading-relaxed">
+                                Vous n'avez rien publié. Besoin d'aide pour un service ou des travaux ?
+                            </p>
+                            <Button 
+                                onClick={() => onNavigate(AppTab.CREATE)} 
+                                className="h-14 px-8 rounded-2xl bg-gray-900 text-white shadow-lg text-base font-bold"
+                            >
                                 Publier une annonce
                             </Button>
                         </div>

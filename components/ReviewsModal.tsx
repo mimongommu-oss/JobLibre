@@ -4,6 +4,7 @@ import { X, Star, ThumbsUp, User, MessageSquare, CheckCircle2, Shield, Heart } f
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { MOCK_REVIEWS } from '../constants';
+import { useUser } from '../context/UserContext';
 
 interface ReviewsModalProps {
     isOpen: boolean;
@@ -14,14 +15,14 @@ interface ReviewsModalProps {
 }
 
 export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rating, reviewCount, userName }) => {
+    const { user } = useUser();
     const [view, setView] = useState<'list' | 'write'>('list');
     const [newRating, setNewRating] = useState(0);
     const [comment, setComment] = useState('');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    // Local State for Reviews to handle Likes (since we use MOCK data)
-    // In a real app, this would come from an API/Context
+    // Local State for Reviews to handle Likes and New Reviews
     const [reviews, setReviews] = useState(() => 
         MOCK_REVIEWS.map(r => ({ ...r, likes: 0, likedByMe: false }))
     );
@@ -58,13 +59,27 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
     const handleSubmit = () => {
         setIsSubmitting(true);
         setTimeout(() => {
+            // Optimistically add the review
+            const newReview = {
+                id: `new_${Date.now()}`,
+                name: user.name,
+                avatar: user.avatar,
+                rating: newRating,
+                date: "À l'instant",
+                comment: comment,
+                tags: selectedTags,
+                likes: 0,
+                likedByMe: false
+            };
+            
+            setReviews(prev => [newReview, ...prev]);
+            
             setIsSubmitting(false);
             setView('list');
             setNewRating(0);
             setComment('');
             setSelectedTags([]);
-            alert("Avis publié avec succès !");
-        }, 1500);
+        }, 1000);
     };
 
     if (!isOpen) return null;
@@ -125,7 +140,7 @@ export const ReviewsModal: React.FC<ReviewsModalProps> = ({ isOpen, onClose, rat
                                 </div>
 
                                 {reviews.map((review) => (
-                                    <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative">
+                                    <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative animate-in fade-in slide-in-from-bottom-2">
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-3">
                                                 <img src={review.avatar} className="w-10 h-10 rounded-full object-cover bg-gray-200" alt={review.name} />
