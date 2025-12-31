@@ -27,9 +27,8 @@ const STORAGE_KEYS = {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return localStorage.getItem(STORAGE_KEYS.IS_AUTH) === 'true';
-    });
+    // MODIFICATION: Default false pour forcer l'écran de connexion au rechargement (Mode Démo)
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const [user, setUser] = useState<User>(() => {
         try {
@@ -47,6 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user)), [user]);
     useEffect(() => localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions)), [transactions]);
+    // Note: We don't read IS_AUTH anymore on init, but we save it just in case logic changes back
     useEffect(() => localStorage.setItem(STORAGE_KEYS.IS_AUTH, String(isAuthenticated)), [isAuthenticated]);
 
     const login = (role: UserRole) => {

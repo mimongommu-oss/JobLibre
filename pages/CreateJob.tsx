@@ -1,12 +1,13 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
     Briefcase, UserCheck, ArrowLeft, ArrowRight, Check, 
-    MapPin, Camera, X, Plus, Save, Loader2, AlertTriangle, Scale, Gavel, FileSignature, ArrowDown, Wallet, ShieldAlert, ShieldCheck, CheckCircle2, Fingerprint
+    MapPin, Camera, X, Plus, Save, Loader2, AlertTriangle, Scale, Gavel, FileSignature, ArrowDown, Wallet, ShieldAlert, ShieldCheck, CheckCircle2, Fingerprint, Globe, Navigation
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useUser } from '../context/UserContext';
 import { AppTab, Job, TargetZone, PricingUnit } from '../types';
-import { GABON_CITIES, GABON_LOCATIONS } from '../constants';
+import { GABON_PROVINCES, GABON_LOCATIONS } from '../constants';
 import { parseLocation, cn } from '../lib/utils';
 import { BoostSelector, BoostValidationModal } from '../components/BoostSelector';
 
@@ -20,7 +21,7 @@ interface JobFormData {
     category: string;
     description: string;
     images: string[];
-    location: { city: string; neighborhood: string };
+    location: { province: string; city: string; neighborhood: string };
     targetZone: TargetZone;
     budget: string;
     pricingUnit: PricingUnit;
@@ -34,7 +35,7 @@ const INITIAL_DATA: JobFormData = {
     category: '',
     description: '',
     images: [],
-    location: { city: 'Libreville', neighborhood: '' },
+    location: { province: 'Estuaire', city: 'Libreville', neighborhood: '' },
     targetZone: { scope: 'CITY', value: 'Libreville' },
     budget: '',
     pricingUnit: 'fixed',
@@ -47,6 +48,7 @@ interface CreateJobProps {
     onSuccess: (tab: AppTab) => void;
 }
 
+// ... (ClientContractModal remains unchanged) ...
 // --- STRICT CLIENT LEGAL MODAL ---
 const ClientContractModal: React.FC<{ isOpen: boolean, onClose: () => void, onConfirm: () => void, jobTitle: string, clientName: string, clientAvatar: string, clientId: string }> = ({ isOpen, onClose, onConfirm, jobTitle, clientName, clientAvatar, clientId }) => {
     const [canToggle, setCanToggle] = useState(false);
@@ -296,7 +298,7 @@ const StepInfo = ({ data, update, categories, userLoc, onAddCategory }: { data: 
     // Auto-fill location if empty
     useEffect(() => {
         if (!data.location.neighborhood && userLoc.neighborhood) {
-            update({ location: { city: userLoc.city || 'Libreville', neighborhood: userLoc.neighborhood } });
+            update({ location: { province: 'Estuaire', city: userLoc.city || 'Libreville', neighborhood: userLoc.neighborhood } });
         }
     }, []);
 
@@ -432,14 +434,18 @@ const StepInfo = ({ data, update, categories, userLoc, onAddCategory }: { data: 
 
 const StepBudget = ({ data, update }: { data: JobFormData, update: (k: Partial<JobFormData>) => void }) => {
     // Dynamic Neighborhoods
-    const neighborhoods = GABON_LOCATIONS[data.location.city] || [];
+    const [cities, setCities] = useState<string[]>([]);
+    const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
 
-    const handleCityChange = (city: string) => {
-        // Reset neighborhood when city changes to prevent invalid state
-        update({ 
-            location: { city, neighborhood: '' } 
-        });
-    };
+    useEffect(() => {
+        const prov = GABON_PROVINCES.find(p => p.name === data.location.province);
+        setCities(prov ? prov.cities : []);
+    }, [data.location.province]);
+
+    useEffect(() => {
+        const hoods = GABON_LOCATIONS[data.location.city] || [];
+        setNeighborhoods(hoods);
+    }, [data.location.city]);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
@@ -448,24 +454,48 @@ const StepBudget = ({ data, update }: { data: JobFormData, update: (k: Partial<J
                     <MapPin size={32} />
                 </div>
                 <h3 className="font-bold text-blue-900 mb-4">Où se passe la mission ?</h3>
+                
+                {/* PROVINCE SELECTOR */}
+                <div className="mb-2">
+                    <div className="relative">
+                        <select 
+                            value={data.location.province} 
+                            onChange={(e) => update({ location: { province: e.target.value, city: '', neighborhood: '' } })}
+                            className="w-full h-12 rounded-xl border border-blue-200 bg-white px-3 font-bold text-sm text-gray-900 outline-none appearance-none"
+                        >
+                            {GABON_PROVINCES.map(p => <option key={p.code} value={p.name}>{p.code} - {p.name}</option>)}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <Globe size={16} />
+                        </div>
+                    </div>
+                </div>
+
                 <div className="flex gap-2">
-                    <select 
-                        value={data.location.city} 
-                        onChange={(e) => handleCityChange(e.target.value)}
-                        className="h-12 rounded-xl border border-blue-200 bg-white px-3 font-bold text-sm text-gray-900 outline-none w-1/3"
-                    >
-                        {GABON_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="relative w-1/3">
+                        <select 
+                            value={data.location.city} 
+                            onChange={(e) => update({ location: { ...data.location, city: e.target.value, neighborhood: '' } })}
+                            className="w-full h-12 rounded-xl border border-blue-200 bg-white px-3 font-bold text-sm text-gray-900 outline-none appearance-none"
+                            disabled={!data.location.province}
+                        >
+                            <option value="" disabled>Ville</option>
+                            {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
                     
-                    <select
-                        value={data.location.neighborhood}
-                        onChange={(e) => update({ location: { ...data.location, neighborhood: e.target.value } })}
-                        className="h-12 rounded-xl border border-blue-200 bg-white px-4 font-bold text-sm text-gray-900 outline-none flex-1"
-                        disabled={!data.location.city}
-                    >
-                        <option value="" disabled>Choisir Quartier...</option>
-                        {neighborhoods.map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
+                    <div className="relative flex-1">
+                        <select
+                            value={data.location.neighborhood}
+                            onChange={(e) => update({ location: { ...data.location, neighborhood: e.target.value } })}
+                            className="w-full h-12 rounded-xl border border-blue-200 bg-white px-4 font-bold text-sm text-gray-900 outline-none appearance-none"
+                            disabled={!data.location.city}
+                        >
+                            <option value="" disabled>Choisir Quartier...</option>
+                            {neighborhoods.map(n => <option key={n} value={n}>{n}</option>)}
+                            <option value="Autre / Centre">Autre / Centre</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

@@ -43,14 +43,192 @@ export const BOOST_OPTIONS: BoostOption[] = [
     }
 ];
 
-// --- GEOLOCATION CONSTANTS (GABON 2025) ---
-// ... (Location constants remain unchanged, truncated for brevity but assumed present)
-const ESTUAIRE_LOCATIONS: Record<string, string[]> = {
-    'Libreville': ['Louis', 'Mont-Bouët', 'PK 8', 'Charbonnages', 'Nzeng-Ayong'],
-    'Akanda': ['Avorbam', 'Angondjé'],
-    'Owendo': ['Akournam']
+// --- GEOLOCATION STRUCTURE (GABON 2025 OFFICIAL GRID) ---
+
+export interface Province {
+    code: string;
+    name: string;
+    cities: string[];
+}
+
+export const GABON_PROVINCES: Province[] = [
+    { 
+        code: 'G1', 
+        name: 'Estuaire', 
+        cities: ['Akanda', 'Libreville', 'Owendo', 'Ntoum', 'Kango', 'Cocobeach', 'Ndzomoe'] 
+    },
+    { 
+        code: 'G2', 
+        name: 'Haut-Ogooué', 
+        cities: ['Franceville', 'Moanda', 'Okondja', 'Akiéni', 'Bongoville', 'Lékoni', 'Bakoumba', 'Ngouoni', 'Boumango', 'Onga', 'Aboumi'] 
+    },
+    { 
+        code: 'G3', 
+        name: 'Moyen-Ogooué', 
+        cities: ['Lambaréné', 'Ndjolé'] 
+    },
+    { 
+        code: 'G4', 
+        name: 'Ngounié', 
+        cities: ['Mouila', 'Fougamou', 'Ndendé', 'Lébamba', 'Mbigou', 'Mimongo', 'Malinga', 'Guiétsou', 'Mandji'] 
+    },
+    { 
+        code: 'G5', 
+        name: 'Nyanga', 
+        cities: ['Tchibanga', 'Mayumba', 'Moabi', 'Mabanda', 'Ndindi', 'Moulengui-Binza'] 
+    },
+    { 
+        code: 'G6', 
+        name: 'Ogooué-Ivindo', 
+        cities: ['Makokou', 'Booué', 'Mékambo', 'Ovan'] 
+    },
+    { 
+        code: 'G7', 
+        name: 'Ogooué-Lolo', 
+        cities: ['Koulamoutou', 'Lastourville', 'Pana', 'Iboundji'] 
+    },
+    { 
+        code: 'G8', 
+        name: 'Ogooué-Maritime', 
+        cities: ['Port-Gentil', 'Gamba', 'Omboué'] 
+    },
+    { 
+        code: 'G9', 
+        name: 'Woleu-Ntem', 
+        cities: ['Oyem', 'Bitam', 'Mitzic', 'Minvoul', 'Medouneu'] 
+    },
+];
+
+export const GABON_LOCATIONS: Record<string, string[]> = {
+    // --- G1: ESTUAIRE ---
+    'Libreville': [
+        // 1er Arr
+        'Bas de Gué-Gué', 'Haut de Gué-Gué', 'Batterie IV', 'Kalikak', 'Likouala', 'Okala (Sud)', 'Angondjé (limite)', 'Sherko',
+        // 2ème Arr
+        'Cocotiers', 'Atong-Abè', 'Nkembo', 'Sotega', 'Camp de Police', 'Mont-Bouët',
+        // 3ème Arr
+        'Montagne Sainte', 'Sainte Anne', 'Glass', 'Nomba', 'Bessieux', 'Peyrie', 'Akom-Nlong',
+        // 4ème Arr
+        'London', 'Toulon', 'Saint-Benoît', 'Baraka', 'Plaine-Niger', 'Batavéa', 'Akyébé Ville', 'Akyébé Poteaux',
+        // 5ème Arr
+        'Mindoubé', 'IAI', 'Plein-Ciel', 'Ozangué', 'Bisségué', 'Cité Damas', 'Beau-Séjour', 'PK 5', 'PK 6', 'PK 7', 'PK 8', 'PK 9', 'PK 10', 'PK 11', 'PK 12',
+        // 6ème Arr
+        'Nzeng-Ayong', 'Sibang', 'Dragages', 'Alibandeng', 'Bel-Air', 'Montalier'
+    ],
+    'Akanda': [
+        // 1er Arr
+        'Cap Estérias', 'Cap Santa Clara', 'Avorbam', 'Marseille', '1er Campement', 'Bolokobouet', 'Malibé',
+        // 2ème Arr
+        'Angondjé Château', 'Angondjé Cité', 'La Sablière', 'Okala Mikolongo', 'Okala Delta Postal', 'Jiji', 'Sherko'
+    ],
+    'Owendo': [
+        // 1er Arr
+        'Alénakiri', 'Barracuda', 'Port-Mole (Sud)', 'Cité OCTRA', 'SNI Owendo',
+        // 2ème Arr
+        'Akournam', 'Igoumié', 'Awoungou', 'Port d\'Owendo'
+    ],
+    'Ntoum': ['Gare-Routière', 'Ntoum-Centre', 'Lalala', 'Meyang', 'Bikélé', 'Essassa'],
+    'Kango': ['Centre-ville', 'Quartier Mission', 'Bord de Komo'],
+    'Cocobeach': ['Centre Administratif', 'Quartiers Côtiers'],
+    'Ndzomoe': ['Centre'],
+
+    // --- G2: HAUT-OGOOUÉ ---
+    'Franceville': [
+        'Poto-Poto', 'Mangoungou', 'Mbaya', 'Mingara', 'Menai', 'Ombelé', 'Yéné', 
+        'Montagne Sainte (Masuku)', 'Quartier de l\'Hôpital', 'Franceville II', 'Mamadou Lewaï'
+    ],
+    'Moanda': [
+        'Onkoula', 'Commercial', 'Montagne Sainte', 'Fumier', 'Alliance', 'Oasis', 'Belle-Vue', 'Moukaba 1', 'Moukaba 2'
+    ],
+    'Okondja': ['Centre', 'Administratif', 'Sébé'],
+    'Akiéni': ['Centre', 'Lékoni'],
+    'Bongoville': ['Centre', 'Djouori'],
+    'Lékoni': ['Centre', 'Plateaux'],
+    'Bakoumba': ['Centre', 'Lékoko'],
+    'Ngouoni': ['Centre'],
+    'Boumango': ['Centre'],
+    'Onga': ['Centre'],
+    'Aboumi': ['Centre'],
+
+    // --- G3: MOYEN-OGOOUÉ ---
+    'Lambaréné': [
+        'Village Schweitzer', 'Texas', 'Adouma', 'Sahara', 'Grand Village', 'Issala', 'Atong-Mbeng'
+    ],
+    'Ndjolé': [
+        'Tsouka', 'Divindet', 'Dourouni 1', 'Dourouni 2', 'Minembe', 'Dikongo', 'Didjanou', 'Pambou'
+    ],
+
+    // --- G4: NGOUNIÉ ---
+    'Mouila': [
+        'Dikongo', 'Val-Marie', 'Bavanga', 'Mbadi', 'Baleka', 'Saint-Gabriel', // Rive Droite
+        'Ngouandji', 'Quartier Commercial', 'Minembé', 'Koungoulou', 'Moutassou', 'Guidouma' // Rive Gauche
+    ],
+    'Fougamou': ['Douani', 'Mandji-Lola', 'Bessia', 'Saint-Hilaire', 'Ngounda', 'Quartier du Port', 'Ikobey', 'Cité des Cadres'],
+    'Ndendé': ['Camp de Police', 'Massambou', 'Lébal-Mpassa', 'Quartier Administratif', 'Mouvengue', 'Quartier Commercial'],
+    'Lébamba': ['Bongolo', 'Moungoundou', 'Moufouta', 'Cité-Cadre', 'Quartier du Marché', 'Saint-Paul'],
+    'Mbigou': ['Malembe', 'Dibam', 'Mbinan', 'Mouvambou', 'Quartier de la Mission', 'Cité Administrative'],
+    'Mimongo': ['Dibamba', 'Dibenga', 'Ngounda-Bani', 'Quartier Mission', 'Quartier des Travailleurs'],
+    'Malinga': ['Quartier Central', 'Quartier de la Douane', 'Mission Catholique', 'Villages Urbains'],
+    'Guiétsou': ['Centre Administratif', 'Quartier du Marché', 'Quartier des Enseignants'],
+    'Mandji': ['Quartier Mission', 'Quartier Administratif', 'Cité Pétrolière', 'Bilala'],
+
+    // --- G5: NYANGA ---
+    'Tchibanga': [
+        // 1er Arr
+        'Quartier Administratif', 'Massanga', 'Ibanga', 'Mougoutsi', 'Dialogue', 'Inguity', 'Bakala', 
+        // 2ème Arr
+        'Minembé', 'Likoula', 'Tchenzélé', 'Moukaba', 'Mavoundi', 'Aéroport', 'Bibora', 'Moungali'
+    ],
+    'Mayumba': ['Quartier de la Plage', 'Quartier du Port', 'Mpivié', 'Likwala', 'Centre-ville', 'Mani-Kassa', 'Cité des Travailleurs', 'Mayumba II'],
+    'Moabi': ['Quartier Mission', 'Quartier Administratif', 'Cité des Cadres', 'Mbinda', 'Malembe', 'Moukigni', 'Dibotsa'],
+    'Mabanda': ['Quartier de la Douane', 'Centre-ville', 'Quartier Mission', 'Massiala', 'Gendarmerie', 'Moulongo'],
+    'Ndindi': ['Centre-Administratif', 'Quartier des Pêcheurs', 'Quartier de la Mission', 'Cité des Enseignants'],
+    'Moulengui-Binza': ['Quartier Central', 'Quartier du Marché', 'Village Urbain', 'Quartier de la Santé'],
+
+    // --- G6: OGOOUÉ-IVINDO ---
+    'Makokou': [
+        // 1er Arr
+        'Centre-ville (Administratif)', 'Quartier Château', 'Mvoung-Nord', 'Nkok-Est', 'Zoolandé', 
+        // 2ème Arr
+        'Ngouadi', 'Petit-Paris', 'Epassendjé', 'Quartier de la Mission', 'Mingone', 'Loa-Loa'
+    ],
+    'Booué': ['Quartier Gare (OCTRA)', 'Centre-ville', 'Quartier de la Mission', 'Cité des Travailleurs', 'Petit-Paris', 'Abila'],
+    'Mékambo': ['Quartier Administratif', 'Bakota', 'Fang', 'Quartier de l\'Hôpital', 'Mission Catholique', 'Cité des Cadres'],
+    'Ovan': ['Quartier Central', 'Quartier de la Mission', 'Quartier du Marché', 'Village Urbain', 'Quartier des Enseignants'],
+
+    // --- G7: OGOOUÉ-LOLO ---
+    'Koulamoutou': ['Centre-ville', 'Bambomo', 'Ménaye', 'Koungou', 'Mayia', 'Madiadi', 'Babongo', 'Mouila-Koula', 'Mikouma', 'Dienga', 'Liyanga'],
+    'Lastourville': ['Centre-ville', 'Mikatsia', 'Bembicani', 'Kessi Poughou', 'Limbenga', 'Lingoma', 'Mission Catholique', 'Ngouamba', 'Pahon Pira', 'Pahon Youngou', 'Tsengue Moupinda'],
+    'Pana': ['Quartier Administratif', 'Quartier Mission', 'Quartier du Marché', 'Villages Urbains'],
+    'Iboundji': ['Quartier Central', 'Quartier de la Mission', 'Cité des Cadres', 'Massiala'],
+
+    // --- G8: OGOOUÉ-MARITIME ---
+    'Port-Gentil': [
+        // 1er Arr
+        'Quartier Administratif', 'Balise', 'Ngadi', 'Quartier du Port', 'Base-Navale', 'Tulipe', 
+        // 2ème Arr
+        'Grand-Village', 'Quartier Chic', 'Tchenzélé', 'Quartier Sans-Culotte', 'Matanda', 'Banco', 
+        // 3ème Arr
+        'Sainte-Thérèse', 'Massoukou', 'Ngouadi', 'Quartier de la Mosquée', 'Soge-Gabon', 
+        // 4ème Arr
+        'N\'tchéngué', 'Cap-Lopez', 'Sogara', 'Quartier de l\'Aéroport', 'Pierre-Louis'
+    ],
+    'Gamba': ['Quartier Administratif', 'Cité Shell', 'Plaine-Gamba', 'Quartier Sud', 'Yenzi', 'Quartier du Lac'],
+    'Omboué': ['Centre-ville', 'Quartier de la Mission', 'Quartier des Pêcheurs', 'Cité Administrative', 'Mpivié'],
+
+    // --- G9: WOLEU-NTEM ---
+    'Oyem': [
+        // 1er Arr
+        'Ngouéma', 'Adzougou', 'Mont-Miyélé', 'Quartier Administratif', 'Methui', 'Nkolayop', 
+        // 2ème Arr
+        'Akoakam', 'Tougou-Tougou', 'Eyenassi', 'Akok-Barrage', 'Mekaga', 'Sougoudzap', 'Sangmelima'
+    ],
+    'Bitam': ['Quartier Commercial', 'Bitam II', 'Quartier de la Mission', 'Essangui', 'Mbira', 'Quartier Administratif', 'Cité des Cadres'],
+    'Mitzic': ['Quartier Central', 'Quartier de la Mission', 'Cité Forestière', 'Abang-Minko', 'Essong', 'Quartier du Marché'],
+    'Minvoul': ['Quartier Administratif', 'Mission Catholique', 'Mission Protestante', 'Cité des Enseignants'],
+    'Medouneu': ['Centre-ville', 'Quartier de la Gendarmerie', 'Quartier de la Mission', 'Regroupements']
 };
-export const GABON_LOCATIONS = ESTUAIRE_LOCATIONS;
+
 export const GABON_CITIES = Object.keys(GABON_LOCATIONS);
 
 // --- TIER LIMITS CONFIGURATION ---
