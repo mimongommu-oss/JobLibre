@@ -125,7 +125,7 @@ const AcceptTermsModal: React.FC<{ isOpen: boolean, onClose: () => void, onConfi
     );
 };
 
-export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => void, onJobSelect?: (job: Job) => void }> = ({ conversation, onBack, onJobSelect }) => {
+export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => void, onJobSelect?: (job: Job) => void, className?: string }> = ({ conversation, onBack, onJobSelect, className }) => {
     // --- HOOKS ---
     const { messages, isTyping, sendMessage, acceptOffer, refuseOffer } = useChat(conversation);
     const { openInfoModal, user, toggleMessageLike } = useUser();
@@ -265,10 +265,11 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
+    // REMOVE FIXED POSITIONING, USE FLEXBOX FOR LAYOUT INTEGRITY
     return (
-        <div className="fixed inset-0 flex flex-col bg-[#F0F2F5] z-[60]">
+        <div className={cn("flex flex-col h-full bg-[#F0F2F5]", className)}>
             {/* Header */}
-            <div className="bg-white px-4 py-3 flex items-center justify-between shadow-sm sticky top-0 z-20">
+            <div className="bg-white px-4 py-3 flex items-center justify-between shadow-sm shrink-0 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                     <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full active:scale-95 transition-transform">
                         <ArrowLeft size={24} className="text-gray-900" />
@@ -276,7 +277,12 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                     <div className="flex items-center gap-2">
                         <img src={conversation.withUser.avatar} className="w-10 h-10 rounded-full object-cover border border-gray-100" />
                         <div>
-                            <h3 className="font-bold text-base text-gray-900 leading-tight">{conversation.withUser.name}</h3>
+                            <div className="flex items-center gap-1.5">
+                                <h3 className="font-bold text-base text-gray-900 leading-tight">{conversation.withUser.name}</h3>
+                                {conversation.withUser.role === 'admin' && (
+                                    <span className="bg-slate-900 text-jobgold px-1.5 py-0.5 rounded text-[8px] font-black uppercase border border-slate-700">Staff</span>
+                                )}
+                            </div>
                             <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> En ligne
                             </span>
@@ -294,7 +300,7 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
             {/* SAFETY BANNER - REDESIGNED URGENT STYLE */}
             <button 
                 onClick={() => openInfoModal("Règles de Sécurité", "Si vous payez hors de l'application (Main à main, Airtel direct), nous ne pouvons pas protéger votre argent en cas de problème. Utilisez toujours l'offre intégrée.")}
-                className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-2.5 flex items-center justify-center gap-2 relative z-10 overflow-hidden shadow-md w-full"
+                className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-2.5 flex items-center justify-center gap-2 relative z-10 overflow-hidden shadow-md shrink-0"
             >
                 {/* Shimmer Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-[200%] h-full animate-shimmer-fast pointer-events-none"></div>
@@ -315,7 +321,7 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
             {relatedJob && showJobContext && (
                 <div 
                     onClick={handleJobClick}
-                    className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-between animate-in slide-in-from-top-2 relative z-10 cursor-pointer active:bg-blue-100 transition-colors group"
+                    className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-between animate-in slide-in-from-top-2 relative z-10 cursor-pointer active:bg-blue-100 transition-colors group shrink-0"
                 >
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 text-blue-600 group-hover:scale-110 transition-transform">
@@ -338,17 +344,27 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                 </div>
             )}
 
-            {/* Messages Area */}
+            {/* Messages Area - SCROLLABLE FLEX ITEM */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6 bg-[#E5DDD5]/10">
                 {messages.map((msg, index) => {
                     const isOutdated = (msg.type === 'offer' || msg.type === 'negotiation') && 
                                        messages.slice(index + 1).some(m => m.type === 'offer' || m.type === 'negotiation');
                     
+                    const isMe = msg.senderId === user.id;
+                    
+                    // Determine if sender is Admin
+                    // 1. If I sent it, check my role.
+                    // 2. If They sent it, check their role.
+                    const isSenderAdmin = isMe 
+                        ? user.role === 'admin' 
+                        : conversation.withUser.role === 'admin';
+
                     return (
                         <MessageBubble 
                             key={msg.id} 
                             msg={msg} 
-                            isMe={msg.senderId === MOCK_USER.id} 
+                            isMe={isMe} 
+                            isAdmin={isSenderAdmin}
                             onCounter={() => handleCounterOffer(msg.metadata?.amount || 0)}
                             onAccept={() => initiateAccept(msg.id, msg.metadata?.amount || 0)} // Trigger Terms Modal
                             onRefuse={() => refuseOffer(msg.id)}
@@ -367,11 +383,10 @@ export const ChatDetail: React.FC<{ conversation: Conversation; onBack: () => vo
                         </div>
                     </div>
                 )}
-                <div className="h-4" /> 
             </div>
 
-            {/* --- BOTTOM INPUT AREA --- */}
-            <div className="bg-white border-t border-gray-200 pb-safe transition-all duration-300">
+            {/* --- BOTTOM INPUT AREA (STATIC FLEX ITEM) --- */}
+            <div className="bg-white border-t border-gray-200 pb-safe shrink-0 transition-all duration-300">
                 {/* Menu */}
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen && !isRecording ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <div className="px-4 pt-4 pb-2 flex gap-4 overflow-x-auto no-scrollbar justify-between sm:justify-start">

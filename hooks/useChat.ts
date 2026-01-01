@@ -64,7 +64,7 @@ export const useChat = (conversation: Conversation) => {
 
         const newMsg: ChatMessage = {
             id: Date.now().toString(),
-            senderId: MOCK_USER.id,
+            senderId: user.id, // FIXED: Use actual logged-in user ID (works for Admin now)
             text: text || '',
             timestamp: 'À l\'instant',
             type: type,
@@ -77,12 +77,10 @@ export const useChat = (conversation: Conversation) => {
         if ((type === 'negotiation' || type === 'offer') && metadata?.amount) {
             triggerBotResponse(metadata.amount);
         }
-    }, [conversation.id, addMessageToConversation, triggerBotResponse]);
+    }, [conversation.id, addMessageToConversation, triggerBotResponse, user.id]);
 
     const acceptOffer = useCallback((msgId: string, amount: number) => {
         // --- STRICT SECURITY CHECK ---
-        // Prevents Standard users from accepting offers above their tier limit
-        // even if the offer came from a Premium user.
         const maxBudget = TIER_LIMITS[user.tier].maxBudgetView;
         
         if (amount > maxBudget) {

@@ -317,7 +317,6 @@ export const MOCK_USERS: User[] = [
     createMockUser(5, 'Tech Solutions', 'premium', 'pro', 'men'),
     createMockUser(6, 'David B.', 'verified', 'pro', 'men'),
     createMockUser(11, 'Luc T.', 'standard', 'client', 'men'),
-    // ... reduced list for brevity
 ];
 
 // --- 3. GENERATE JOBS ---
@@ -329,9 +328,269 @@ export const CATEGORIES = [
   { id: 'elec', name: 'Électricité', icon: 'Zap' },
 ];
 
-export const MOCK_JOBS: Job[] = []; // (Assumed populated like before)
-export const MOCK_STORIES: StatusStory[] = [];
-export const HALL_OF_FAME_DATA = [];
-export const MOCK_TRANSACTIONS: Transaction[] = [];
-export const MOCK_CONVERSATIONS: Conversation[] = [];
-export const MOCK_REVIEWS = [];
+export const MOCK_JOBS: Job[] = [
+    {
+        id: 'job_1',
+        type: 'hiring',
+        title: 'Urgent : Fuite d\'eau salle de bain',
+        description: 'Je cherche un plombier disponible immédiatement pour réparer une fuite importante sous le lavabo. L\'eau coule beaucoup.',
+        category: 'Plomberie',
+        budget: 15000,
+        pricingUnit: 'fixed',
+        location: 'Louis, Libreville',
+        targetZone: { scope: 'NEIGHBORHOOD', value: 'Louis' },
+        status: 'open',
+        postedBy: MOCK_USERS[6], // Luc T.
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
+        isUrgent: true,
+        isBoosted: true,
+        applicants: 2,
+        views: 45,
+        negotiable: true,
+        minTierRequired: 'standard',
+        images: ['https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=800&q=80']
+    },
+    {
+        id: 'job_2',
+        type: 'service_offer',
+        title: 'Électricien Bâtiment Qualifié',
+        description: 'Installation, dépannage et mise aux normes. Disponible sur tout Libreville et Akanda. Travail soigné et garanti.',
+        category: 'Électricité',
+        budget: 0, // Sur devis
+        pricingUnit: 'fixed',
+        location: 'Angondjé, Akanda',
+        targetZone: { scope: 'CITY', value: 'Akanda' },
+        status: 'open',
+        postedBy: MOCK_USERS[1], // Sarah Elec (Pro)
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        isBoosted: true,
+        applicants: 0,
+        views: 120,
+        negotiable: true,
+        minTierRequired: 'standard',
+        images: ['https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80']
+    },
+    {
+        id: 'job_3',
+        type: 'hiring',
+        title: 'Besoin d\'aide pour déménagement',
+        description: 'Cherche 2 bras forts pour descendre des meubles du 3ème étage (sans ascenseur) ce samedi matin.',
+        category: 'Déménagement',
+        budget: 25000,
+        pricingUnit: 'fixed',
+        location: 'Mont-Bouët, Libreville',
+        targetZone: { scope: 'NEIGHBORHOOD', value: 'Mont-Bouët' },
+        status: 'open',
+        postedBy: MOCK_USERS[5], // David B.
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+        isUrgent: false,
+        applicants: 5,
+        views: 89,
+        negotiable: false,
+        minTierRequired: 'standard'
+    },
+    {
+        id: 'job_4',
+        type: 'hiring',
+        title: 'Ménage grand nettoyage',
+        description: 'Nettoyage complet appartement T3 avant état des lieux. Sols, vitres, cuisine.',
+        category: 'Ménage',
+        budget: 20000,
+        pricingUnit: 'fixed',
+        location: 'Batterie IV, Libreville',
+        targetZone: { scope: 'NEIGHBORHOOD', value: 'Batterie IV' },
+        status: 'negotiating',
+        postedBy: MOCK_USERS[0], // Jean K.
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        isUrgent: false,
+        applicants: 8,
+        views: 156,
+        negotiable: true,
+        minTierRequired: 'verified'
+    },
+    {
+        id: 'job_5',
+        type: 'service_offer',
+        title: 'Peintre décorateur intérieur',
+        description: 'Je redonne vie à vos murs. Peinture simple ou effets décoratifs. Devis gratuit déplacement inclus.',
+        category: 'Peinture',
+        budget: 5000,
+        pricingUnit: 'hourly', // Prix appel
+        location: 'Port-Gentil',
+        targetZone: { scope: 'CITY', value: 'Port-Gentil' },
+        status: 'open',
+        postedBy: MOCK_USERS[2], // Entreprise BTP
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+        isBoosted: true,
+        applicants: 0,
+        views: 210,
+        negotiable: true,
+        minTierRequired: 'standard',
+        images: ['https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80']
+    },
+    {
+        id: 'job_6',
+        type: 'hiring',
+        title: 'Réparation climatiseur split',
+        description: 'Mon split ne refroidit plus. Il fait un bruit bizarre.',
+        category: 'Électricité', // Ou froid/clim
+        budget: 10000,
+        pricingUnit: 'fixed',
+        location: 'Owendo',
+        targetZone: { scope: 'CITY', value: 'Owendo' },
+        status: 'open',
+        postedBy: MOCK_USERS[6],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+        isUrgent: true,
+        applicants: 1,
+        views: 30,
+        negotiable: true,
+        minTierRequired: 'standard'
+    },
+    {
+        id: 'job_7',
+        type: 'service_offer',
+        title: 'Cours de soutien Maths/Physique',
+        description: 'Professeur expérimenté donne cours à domicile pour lycéens. Quartiers nord de Libreville.',
+        category: 'Informatique',
+        budget: 5000,
+        pricingUnit: 'hourly',
+        location: 'Okala, Akanda',
+        targetZone: { scope: 'NEIGHBORHOOD', value: 'Okala' },
+        status: 'open',
+        postedBy: MOCK_USERS[4], // Tech Solutions
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+        isBoosted: false,
+        applicants: 0,
+        views: 65,
+        negotiable: false,
+        minTierRequired: 'standard'
+    },
+    {
+        id: 'job_8',
+        type: 'hiring',
+        title: 'Pose de carrelage terrasse',
+        description: 'Cherche carreleur pour une terrasse de 20m2. Matériel fourni.',
+        category: 'Peinture', // Using closest visual category
+        budget: 60000,
+        pricingUnit: 'fixed',
+        location: 'Franceville',
+        targetZone: { scope: 'CITY', value: 'Franceville' },
+        status: 'open',
+        postedBy: MOCK_USERS[0],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+        isUrgent: false,
+        applicants: 3,
+        views: 112,
+        negotiable: true,
+        minTierRequired: 'verified'
+    },
+    {
+        id: 'job_9',
+        type: 'hiring',
+        title: 'Installation TV murale',
+        description: 'Besoin de quelqu\'un avec une perceuse pour fixer un support TV au mur.',
+        category: 'Bricolage', // Mapping to generic if not exist
+        budget: 5000,
+        pricingUnit: 'fixed',
+        location: 'Nzeng-Ayong, Libreville',
+        targetZone: { scope: 'NEIGHBORHOOD', value: 'Nzeng-Ayong' },
+        status: 'open',
+        postedBy: MOCK_USERS[6],
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        isUrgent: false,
+        applicants: 0,
+        views: 12,
+        negotiable: false,
+        minTierRequired: 'standard'
+    },
+    {
+        id: 'job_10',
+        type: 'service_offer',
+        title: 'Livraison de colis express',
+        description: 'Je dispose d\'une moto pour vos courses urgentes dans Libreville.',
+        category: 'Déménagement', // Logistique
+        budget: 2000,
+        pricingUnit: 'fixed',
+        location: 'Centre-ville, Libreville',
+        targetZone: { scope: 'CITY', value: 'Libreville' },
+        status: 'open',
+        postedBy: MOCK_USERS[3], // Marie Services
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
+        isBoosted: false,
+        applicants: 0,
+        views: 200,
+        negotiable: true,
+        minTierRequired: 'standard'
+    }
+];
+
+export const MOCK_STORIES: StatusStory[] = [
+    {
+        id: 's1',
+        user: MOCK_USERS[1], // Sarah Elec
+        type: 'urgent_job',
+        text: 'Urgent : Cherche aide élec chantier Avorbam',
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 4).toISOString(),
+        jobId: 'job_2', // Linking to an existing job or dummy
+        views: 142
+    },
+    {
+        id: 's2',
+        user: MOCK_USERS[3], // Marie Services
+        type: 'info',
+        text: 'Promo -50% sur le ménage ce weekend !',
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 12).toISOString(),
+        views: 89
+    },
+    {
+        id: 's3',
+        user: MOCK_USERS[6], // Luc T.
+        type: 'urgent_job',
+        text: 'Recherche Nounou pour ce soir 19h',
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString(),
+        views: 56
+    }
+];
+
+export const HALL_OF_FAME_DATA = [
+    { rank: 1, user: MOCK_USERS[0], title: 'Maître Artisan', score: 980 },
+    { rank: 2, user: MOCK_USERS[1], title: 'Expert Confirmé', score: 850 },
+    { rank: 3, user: MOCK_USERS[2], title: 'Pro Vérifié', score: 720 },
+    { rank: 4, user: MOCK_USERS[3], title: 'Membre Actif', score: 650 },
+    { rank: 5, user: MOCK_USERS[4], title: 'Nouvelle Star', score: 500 },
+];
+
+export const MOCK_TRANSACTIONS: Transaction[] = [
+    { id: 't1', type: 'credit', amount: 25000, currency: 'XAF', description: 'Rechargement Mobile Money', date: 'Aujourd\'hui, 10:30', status: 'completed' },
+    { id: 't2', type: 'escrow_lock', amount: 15000, currency: 'XAF', description: 'Séquestre : Mission Plomberie', date: 'Hier, 14:15', status: 'pending' },
+    { id: 't3', type: 'debit', amount: 2500, currency: 'XAF', description: 'Achat Pack Découverte', date: '12 Oct, 09:00', status: 'completed' },
+];
+
+export const MOCK_CONVERSATIONS: Conversation[] = [
+    {
+        id: 'c1',
+        withUser: MOCK_USERS[0],
+        lastMessage: 'Je suis disponible demain matin pour le devis.',
+        timestamp: '10:45',
+        unreadCount: 2,
+        messages: [
+            { id: 'm1', senderId: 'u_1', text: 'Bonjour, votre annonce m\'intéresse.', timestamp: '10:30', type: 'text' },
+            { id: 'm2', senderId: 'u_me', text: 'Bonjour, super. Quand pouvez-vous passer ?', timestamp: '10:35', type: 'text' },
+            { id: 'm3', senderId: 'u_1', text: 'Je suis disponible demain matin pour le devis.', timestamp: '10:45', type: 'text' }
+        ]
+    },
+    {
+        id: 'c2',
+        withUser: MOCK_USERS[1],
+        lastMessage: 'Offre acceptée : 15 000 FCFA',
+        timestamp: 'Hier',
+        unreadCount: 0,
+        messages: []
+    }
+];
+
+export const MOCK_REVIEWS = [
+    { id: 'r1', name: 'Paul M.', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', rating: 5, date: 'Il y a 2 jours', comment: 'Travail impeccable et rapide. Je recommande vivement !', tags: ['Ponctuel', 'Expert'] },
+    { id: 'r2', name: 'Sophie L.', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', rating: 4, date: 'Il y a 1 semaine', comment: 'Très bon artisan, un peu de retard mais le résultat est là.', tags: ['Bon prix'] },
+];

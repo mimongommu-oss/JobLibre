@@ -1,22 +1,24 @@
 
 import React from 'react';
-import { Shield, DollarSign, Play, MapPin, CheckCheck, RefreshCw, XCircle, Lock, Heart } from 'lucide-react';
+import { Shield, DollarSign, Play, MapPin, CheckCheck, RefreshCw, XCircle, Lock, Heart, ShieldCheck } from 'lucide-react';
 import { ChatMessage } from '../../types';
 import { Button } from '../ui/Button';
 import { useUser } from '../../context/UserContext';
 import { TIER_LIMITS } from '../../constants';
+import { cn } from '../../lib/utils';
 
 interface MessageBubbleProps { 
     msg: ChatMessage; 
     isMe: boolean; 
+    isAdmin?: boolean; // New prop for distinct admin styling
     onCounter?: () => void;
     onAccept?: () => void;
     onRefuse?: () => void;
-    onLike: () => void; // New prop
+    onLike: () => void;
     isOutdated?: boolean;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCounter, onAccept, onRefuse, onLike, isOutdated }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, isAdmin, onCounter, onAccept, onRefuse, onLike, isOutdated }) => {
     const { user } = useUser();
     
     // Check specific status
@@ -29,32 +31,67 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCount
     const maxBudget = TIER_LIMITS[user.tier].maxBudgetView;
     const isOverLimit = amount > maxBudget && !isMe;
 
-    // Style adjustments if rejected
-    const bubbleOpacity = isRejected ? 'opacity-70 bg-gray-50' : 'bg-white';
-    
+    // --- STYLE LOGIC ---
+    let bubbleStyle = '';
+    let textStyle = '';
+    let metaStyle = '';
+
+    if (isAdmin) {
+        // ADMIN STYLE: Official, Dark, Gold Accents
+        bubbleStyle = 'bg-slate-900 border border-slate-700 shadow-md rounded-xl';
+        textStyle = 'text-white';
+        metaStyle = 'text-slate-400';
+    } else if (isMe) {
+        // ME (Standard User)
+        bubbleStyle = 'bg-jobgreen text-white rounded-tr-sm';
+        textStyle = 'text-white';
+        metaStyle = 'text-green-100';
+    } else {
+        // OTHER (Standard User)
+        bubbleStyle = isRejected ? 'opacity-70 bg-gray-50 text-gray-900 rounded-tl-sm border border-gray-100' : 'bg-white text-gray-900 rounded-tl-sm border border-gray-100';
+        textStyle = 'text-gray-900';
+        metaStyle = 'text-gray-400';
+    }
+
     const likeCount = msg.likes || 0;
     const isLiked = msg.likedByMe;
 
     return (
         <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-2`}>
-            <div className={`max-w-[85%] rounded-[20px] p-3 shadow-sm transition-all relative group ${
-                isMe 
-                ? 'bg-jobgreen text-white rounded-tr-sm' 
-                : `${bubbleOpacity} text-gray-900 rounded-tl-sm border border-gray-100`
-            } ${isOutdated && !isAccepted && !isRejected ? 'opacity-60 grayscale' : ''}`}>
+            {/* ADMIN BADGE (Visual Header) */}
+            {isAdmin && !isMe && (
+                <div className="flex items-center gap-1 ml-2 mb-1">
+                    <ShieldCheck size={12} className="text-jobgold fill-jobgold/20" />
+                    <span className="text-[9px] font-black text-jobgold uppercase tracking-wider">Équipe JobLibre</span>
+                </div>
+            )}
+
+            <div className={cn(
+                "max-w-[85%] p-3 shadow-sm transition-all relative group rounded-[20px]",
+                bubbleStyle,
+                isOutdated && !isAccepted && !isRejected ? 'opacity-60 grayscale' : ''
+            )}>
                 
+                {/* ADMIN BADGE (Inside Bubble if it's Me sending as Admin) */}
+                {isAdmin && isMe && (
+                    <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-white/10">
+                        <ShieldCheck size={12} className="text-jobgold" />
+                        <span className="text-[9px] font-black text-jobgold uppercase tracking-wider">Staff Officiel</span>
+                    </div>
+                )}
+
                 {/* 1. NEGOTIATION / OFFER */}
                 {(msg.type === 'offer' || msg.type === 'negotiation') && msg.metadata && (
-                    <div className={`mb-2 p-3 rounded-xl border ${isMe ? 'bg-white/10 border-white/20' : 'bg-gray-50 border-gray-100'}`}>
+                    <div className={`mb-2 p-3 rounded-xl border ${isMe || isAdmin ? 'bg-white/10 border-white/20' : 'bg-gray-50 border-gray-100'}`}>
                         <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-1.5 rounded-full ${isMe ? 'bg-white text-jobgreen' : isRejected ? 'bg-red-100 text-red-500' : 'bg-jobgreen text-white'}`}>
+                            <div className={`p-1.5 rounded-full ${isMe || isAdmin ? 'bg-white text-jobgreen' : isRejected ? 'bg-red-100 text-red-500' : 'bg-jobgreen text-white'}`}>
                                 <DollarSign size={12} />
                             </div>
-                            <span className="font-bold text-sm uppercase tracking-wide">
+                            <span className={cn("font-bold text-sm uppercase tracking-wide", isAdmin ? "text-white" : "")}>
                                 {isRejected ? 'Offre Rejetée' : isAccepted ? 'Offre Acceptée' : 'Proposition'}
                             </span>
                         </div>
-                        <div className={`text-3xl font-black mb-1 text-center tracking-tight flex items-center justify-center gap-2 ${isOutdated || isRejected ? 'line-through decoration-2 opacity-50' : ''}`}>
+                        <div className={`text-3xl font-black mb-1 text-center tracking-tight flex items-center justify-center gap-2 ${isOutdated || isRejected ? 'line-through decoration-2 opacity-50' : ''} ${isAdmin ? 'text-white' : ''}`}>
                             {msg.metadata.amount?.toLocaleString()} <span className="text-xs font-bold opacity-60">FCFA</span>
                             {isOverLimit && !isAccepted && !isRejected && <Lock size={20} className="text-red-500 animate-pulse" />}
                         </div>
@@ -142,14 +179,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCount
                 {/* 3. MEDIA TYPES */}
                 {msg.type === 'voice' && (
                     <div className="flex items-center gap-3 min-w-[160px] py-1">
-                        <button className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${isMe ? 'bg-white text-jobgreen' : 'bg-gray-100 text-gray-600'}`}>
+                        <button className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${isMe || isAdmin ? 'bg-white text-jobgreen' : 'bg-gray-100 text-gray-600'}`}>
                             <Play size={18} fill="currentColor" className="ml-0.5" />
                         </button>
                         <div className="flex flex-col flex-1">
-                            <div className={`h-1.5 w-full rounded-full mb-1 ${isMe ? 'bg-white/30' : 'bg-gray-200'}`}>
-                                <div className={`h-full w-1/3 rounded-full ${isMe ? 'bg-white' : 'bg-gray-500'}`}></div>
+                            <div className={`h-1.5 w-full rounded-full mb-1 ${isMe || isAdmin ? 'bg-white/30' : 'bg-gray-200'}`}>
+                                <div className={`h-full w-1/3 rounded-full ${isMe || isAdmin ? 'bg-white' : 'bg-gray-500'}`}></div>
                             </div>
-                            <span className="text-[10px] font-bold opacity-80">{msg.metadata?.duration}</span>
+                            <span className={cn("text-[10px] font-bold opacity-80", textStyle)}>{msg.metadata?.duration}</span>
                         </div>
                     </div>
                 )}
@@ -173,12 +210,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg, isMe, onCount
 
                 {/* 4. PLAIN TEXT */}
                 {msg.text && msg.type !== 'voice' && (
-                    <p className={`text-[15px] leading-snug whitespace-pre-wrap font-medium ${msg.type === 'text' ? '' : 'mt-2 text-xs opacity-80'}`}>
+                    <p className={`text-[15px] leading-snug whitespace-pre-wrap font-medium ${msg.type === 'text' ? '' : 'mt-2 text-xs opacity-80'} ${textStyle}`}>
                         {msg.type === 'text' ? msg.text : msg.type === 'location' ? '' : msg.text}
                     </p>
                 )}
 
-                <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 font-bold ${isMe ? 'text-green-100' : 'text-gray-400'}`}>
+                <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 font-bold ${metaStyle}`}>
                     {msg.timestamp}
                     {isMe && <CheckCheck size={12} />}
                 </div>
